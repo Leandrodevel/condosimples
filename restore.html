@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Condomínio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-green-50 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-2xl mx-auto">
+        <!-- Cabeçalho com Botão Hamburger -->
+        <header class="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-green-100">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleMenu()" class="p-2 text-green-800 hover:bg-green-50 rounded-lg transition-colors" title="Abrir Menu">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <h1 class="text-xl font-bold text-green-800 flex items-center gap-2">
+                    <i data-lucide="building"></i> Condomínio
+                </h1>
+            </div>
+            <span id="tituloAbaAtual" class="text-sm font-bold text-gray-500 uppercase tracking-wider">Buscar</span>
+        </header>
+
+        <!-- Menu Lateral (Drawer) -->
+        <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 transition-opacity" onclick="toggleMenu()"></div>
+        <div id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between">
+            <div>
+                <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-green-800 text-white">
+                    <h2 class="font-bold text-lg flex items-center gap-2">
+                        <i data-lucide="menu"></i> Menu do Sistema
+                    </h2>
+                    <button onclick="toggleMenu()" class="p-1 text-white hover:bg-green-700 rounded-lg transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div class="flex flex-col p-4 gap-2">
+                    <button onclick="mudarAba('busca')" class="menu-btn flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-green-700 bg-green-50 transition-all text-left">
+                        <i data-lucide="search" class="w-5 h-5"></i> Buscar Moradores
+                    </button>
+                    <button onclick="mudarAba('cadastro')" class="menu-btn flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-all text-left">
+                        <i data-lucide="user-plus" class="w-5 h-5"></i> Cadastrar Morador
+                    </button>
+                    <button onclick="mudarAba('encomendas')" class="menu-btn flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-all text-left">
+                        <i data-lucide="package" class="w-5 h-5"></i> Encomendas Pendentes
+                    </button>
+                    <button onclick="mudarAba('historicoEncomendas')" class="menu-btn flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-all text-left">
+                        <i data-lucide="history" class="w-5 h-5"></i> Histórico de Encomendas
+                    </button>
+                    <button onclick="mudarAba('reservas')" class="menu-btn flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-all text-left">
+                        <i data-lucide="calendar-check" class="w-5 h-5"></i> Reservas de Espaços
+                    </button>
+                    <button onclick="mudarAba('espacos')" class="menu-btn flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-all text-left">
+                        <i data-lucide="layout-grid" class="w-5 h-5"></i> Gerenciar Espaços
+                    </button>
+                    <button onclick="mudarAba('notas')" class="menu-btn flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-all text-left">
+                        <i data-lucide="file-text" class="w-5 h-5"></i> Anotações
+                    </button>
+                </div>
+            </div>
+
+            <!-- Importar / Exportar no Rodapé do Menu Lateral -->
+            <div class="p-4 border-t border-gray-100 flex flex-col gap-2 bg-gray-50">
+                <button onclick="exportarDados()" class="w-full flex items-center gap-2 text-xs text-gray-600 hover:text-green-800 transition-colors uppercase font-bold tracking-wider py-2 px-3 rounded-lg hover:bg-white">
+                    <i data-lucide="download" class="w-4 h-4"></i> Exportar JSON
+                </button>
+                <input type="file" id="importFile" class="hidden" onchange="importarDados(event)">
+                <button onclick="document.getElementById('importFile').click()" class="w-full flex items-center gap-2 text-xs text-gray-600 hover:text-green-800 transition-colors uppercase font-bold tracking-wider py-2 px-3 rounded-lg hover:bg-white">
+                    <i data-lucide="upload" class="w-4 h-4"></i> Importar JSON
+                </button>
+            </div>
+        </div>
+
+        <!-- Conteúdo: Cadastro -->
+        <div id="abaCadastro" class="tab-content hidden">
+            <h2 class="text-lg font-bold text-green-800 mb-3 flex items-center gap-2"><i data-lucide="user-plus"></i> Novo Morador</h2>
+            <form id="formCadastro" class="bg-white p-6 rounded-xl shadow-sm border border-green-100 flex flex-col gap-3">
+                <input type="text" id="numeroCasa" placeholder="Número da Casa" required class="w-full p-3 border rounded-lg">
+                <input type="text" id="nomeMorador" placeholder="Nome do Morador" required class="w-full p-3 border rounded-lg">
+                <input type="tel" id="telefoneMorador" placeholder="Telefone" class="w-full p-3 border rounded-lg">
+                <button type="submit" class="bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition-colors">Salvar Morador</button>
+            </form>
+        </div>
+
+        <!-- Conteúdo: Busca -->
+        <div id="abaBusca" class="tab-content">
+            <div class="flex gap-2 mb-4">
+                <input type="text" oninput="renderizar()" id="busca" placeholder="Buscar por casa ou nome..." class="w-full p-3 border rounded-lg bg-white shadow-sm">
+                <button onclick="abrirModalLetras()" class="bg-green-600 text-white px-4 py-3 rounded-lg font-bold flex items-center justify-center hover:bg-green-700 transition-colors shadow-sm" title="Buscar por Letra">
+                    <i data-lucide="arrow-down-a-z" class="w-5 h-5"></i>
+                </button>
+                <button onclick="abrirModalCasas('busca')" class="bg-green-700 text-white px-4 py-3 rounded-lg font-bold flex items-center justify-center hover:bg-green-800 transition-colors shadow-sm" title="Ver Casas">
+                    <i data-lucide="grid" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="listaMoradores" class="bg-white rounded-xl shadow-sm border border-green-100 divide-y"></div>
+        </div>
+
+        <!-- Conteúdo: Encomendas Pendentes -->
+        <div id="abaEncomendas" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-lg font-bold text-green-800 flex items-center gap-2"><i data-lucide="package"></i> Encomendas Pendentes</h2>
+                <button onclick="abrirModalEncomenda()" class="bg-green-600 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-green-700 transition-colors shadow-sm text-sm">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Nova Encomenda
+                </button>
+            </div>
+
+            <!-- Card Único: Visualização Rápida com números bem destacados -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-green-100 mb-4">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <i data-lucide="eye" class="w-4 h-4 text-green-700"></i> Visualização Rápida (Casas com Encomendas)
+                </h3>
+                <div id="visualizacaoRapidaCasas" class="text-green-900 font-extrabold text-lg tracking-wide bg-green-50 p-3 rounded-lg border border-green-200 min-h-[50px] flex items-center">
+                    Nenhuma encomenda pendente.
+                </div>
+            </div>
+
+            <!-- Campo de Busca de Pendentes -->
+            <div class="mb-4">
+                <input type="text" id="buscaEncomendas" oninput="renderizarEncomendas()" placeholder="Buscar encomenda pendente (casa, destinatário ou ID)..." class="w-full p-3 border rounded-lg bg-white shadow-sm">
+            </div>
+
+            <!-- Lista de Encomendas Pendentes -->
+            <div id="listaEncomendas" class="bg-white rounded-xl shadow-sm border border-green-100 divide-y"></div>
+        </div>
+
+        <!-- Conteúdo: Histórico de Encomendas -->
+        <div id="abaHistoricoEncomendas" class="tab-content hidden">
+            <h2 class="text-lg font-bold text-green-800 mb-3 flex items-center gap-2"><i data-lucide="history"></i> Histórico de Encomendas Entregues</h2>
+            
+            <div class="mb-4">
+                <input type="text" id="buscaHistorico" oninput="renderizarHistorico()" placeholder="Buscar no histórico (casa, destinatário ou retirante)..." class="w-full p-3 border rounded-lg bg-white shadow-sm">
+            </div>
+
+            <div id="listaHistorico" class="bg-white rounded-xl shadow-sm border border-green-100 divide-y"></div>
+        </div>
+
+        <!-- Conteúdo: Reservas -->
+        <div id="abaReservas" class="tab-content hidden">
+            <h2 class="text-lg font-bold text-green-800 mb-3 flex items-center gap-2"><i data-lucide="calendar-check"></i> Gestão de Reservas</h2>
+            <form id="formReservas" class="bg-white p-6 rounded-xl shadow-sm border border-green-100 flex flex-col gap-3 mb-4">
+                <div class="flex gap-2 items-center">
+                    <select id="reservaArea" required class="w-full p-3 border rounded-lg bg-white">
+                        <option value="">Selecione o Espaço...</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <input type="date" id="reservaData" required class="w-full p-3 border rounded-lg">
+                    <input type="time" id="reservaHora" required class="w-full p-3 border rounded-lg">
+                </div>
+                <input type="text" id="reservaLote" placeholder="Lote / Casa" required class="w-full p-3 border rounded-lg">
+                <button type="submit" class="bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition-colors">Salvar Reserva</button>
+            </form>
+            <div id="listaReservas" class="bg-white rounded-xl shadow-sm border border-green-100 divide-y"></div>
+        </div>
+
+        <!-- Conteúdo: Gerenciar Espaços -->
+        <div id="abaEspacos" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-lg font-bold text-green-800 flex items-center gap-2"><i data-lucide="layout-grid"></i> Gerenciar Espaços</h2>
+                <button onclick="abrirModalNovoEspaco()" class="bg-green-600 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-green-700 transition-colors shadow-sm text-sm">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Novo Espaço
+                </button>
+            </div>
+            <div id="listaEspacosGerencia" class="bg-white rounded-xl shadow-sm border border-green-100 divide-y"></div>
+        </div>
+
+        <!-- Conteúdo: Anotações -->
+        <div id="abaNotas" class="tab-content hidden">
+            <h2 class="text-lg font-bold text-blue-900 mb-3 flex items-center gap-2"><i data-lucide="file-text"></i> Bloco de Anotações</h2>
+            <form id="formNotas" class="bg-white p-6 rounded-xl shadow-sm border border-green-100 flex flex-col gap-3 mb-4">
+                <input type="text" id="notaCasa" placeholder="Casa" required class="w-full p-3 border rounded-lg">
+                <textarea id="notaTexto" placeholder="Anotação rápida..." required class="w-full p-3 border rounded-lg"></textarea>
+                <button type="submit" class="bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition-colors">Salvar Nota</button>
+            </form>
+            <div id="listaNotas" class="bg-white rounded-xl shadow-sm border border-blue-100 divide-y"></div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modalEdicao" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl relative">
+            <button onclick="fecharModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Editar Morador</h2>
+            <form id="formEditar" class="flex flex-col gap-3">
+                <input type="hidden" id="editId">
+                <input type="text" id="editCasa" placeholder="Casa" required class="w-full p-3 border rounded-lg">
+                <input type="text" id="editNome" placeholder="Nome" required class="w-full p-3 border rounded-lg">
+                <input type="tel" id="editTelefone" placeholder="Telefone" class="w-full p-3 border rounded-lg">
+                <button type="submit" class="bg-blue-600 text-white p-3 rounded-lg font-bold mt-2 hover:bg-blue-700 transition-colors">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Edição Nota -->
+    <div id="modalEdicaoNota" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl relative">
+            <button onclick="fecharModalNota()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Editar Anotação</h2>
+            <form id="formEditarNota" class="flex flex-col gap-3">
+                <input type="hidden" id="editNotaId">
+                <input type="text" id="editNotaCasa" placeholder="Casa" required class="w-full p-3 border rounded-lg">
+                <textarea id="editNotaTexto" placeholder="Anotação..." required class="w-full p-3 border rounded-lg"></textarea>
+                <button type="submit" class="bg-blue-600 text-white p-3 rounded-lg font-bold mt-2 hover:bg-blue-700 transition-colors">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Nova Encomenda -->
+    <div id="modalEncomenda" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl relative">
+            <button onclick="fecharModalEncomenda()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><i data-lucide="package-plus"></i> Registrar Encomenda</h2>
+            <form id="formEncomendas" class="flex flex-col gap-3">
+                <div class="flex gap-2">
+                    <input type="text" id="encomendaCasa" placeholder="Selecione ou digite a Casa / Lote" required readonly onclick="abrirModalCasas('encomenda')" class="w-full p-3 border rounded-lg bg-gray-50 cursor-pointer" title="Clique para selecionar a casa">
+                    <button type="button" onclick="abrirModalCasas('encomenda')" class="bg-green-700 text-white px-4 py-3 rounded-lg font-bold flex items-center justify-center hover:bg-green-800 transition-colors shadow-sm" title="Selecionar Casa">
+                        <i data-lucide="grid" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <input type="text" id="encomendaDestinatario" placeholder="Nome do Destinatário" required class="w-full p-3 border rounded-lg">
+                <input type="text" id="encomendaIdPacote" placeholder="Identificação / ID do Pacote (Ex: Correios, ML, Código)" required class="w-full p-3 border rounded-lg">
+                <button type="submit" class="bg-green-600 text-white p-3 rounded-lg font-bold mt-2 hover:bg-green-700 transition-colors">Salvar Encomenda</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalCasas" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl relative max-h-[80vh] flex flex-col">
+            <button onclick="fecharModalCasas()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Selecionar Casa</h2>
+            <div id="gridCasas" class="grid grid-cols-4 gap-3 overflow-y-auto p-1"></div>
+        </div>
+    </div>
+
+    <div id="modalLetras" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl relative max-h-[80vh] flex flex-col">
+            <button onclick="fecharModalLetras()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Buscar por Letra Inicial</h2>
+            <div id="gridLetras" class="grid grid-cols-4 md:grid-cols-6 gap-3 overflow-y-auto p-1"></div>
+        </div>
+    </div>
+
+    <div id="modalNovoEspaco" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl relative">
+            <button onclick="fecharModalNovoEspaco()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            <h2 class="text-xl font-bold text-gray-800 mb-4" id="tituloModalEspaco">Cadastrar Novo Espaço</h2>
+            <form id="formNovoEspaco" class="flex flex-col gap-3">
+                <input type="hidden" id="editEspacoAntigo">
+                <input type="text" id="nomeNovoEspaco" placeholder="Nome do Espaço" required class="w-full p-3 border rounded-lg">
+                <button type="submit" class="bg-green-600 text-white p-3 rounded-lg font-bold mt-2 hover:bg-green-700 transition-colors">Salvar Espaço</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let moradores = JSON.parse(localStorage.getItem('lista_condominio')) || [];
+        let notas = JSON.parse(localStorage.getItem('lista_notas')) || [];
+        let reservas = JSON.parse(localStorage.getItem('lista_reservas')) || [];
+        let encomendas = JSON.parse(localStorage.getItem('lista_encomendas')) || [];
+        let espacos = JSON.parse(localStorage.getItem('lista_espacos')) || ['Salão de Festas'];
+        let contextoModalCasa = 'busca';
+
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            const isOpen = !sidebar.classList.contains('-translate-x-full');
+
+            if (isOpen) {
+                sidebar.classList.add('-translate-x-full');
+                overlay.classList.add('hidden');
+            } else {
+                sidebar.classList.remove('-translate-x-full');
+                overlay.classList.remove('hidden');
+            }
+        }
+
+        function mudarAba(aba) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('aba' + aba.charAt(0).toUpperCase() + aba.slice(1)).classList.remove('hidden');
+            
+            const nomesAbas = { 
+                'busca': 'Buscar', 
+                'cadastro': 'Cadastrar', 
+                'encomendas': 'Pendentes', 
+                'historicoEncomendas': 'Histórico',
+                'reservas': 'Reservas', 
+                'espacos': 'Espaços',
+                'notas': 'Anotações' 
+            };
+            document.getElementById('tituloAbaAtual').innerText = nomesAbas[aba] || '';
+
+            document.querySelectorAll('.menu-btn').forEach(btn => {
+                btn.classList.remove('bg-green-50', 'text-green-700', 'font-bold');
+                btn.classList.add('font-medium', 'text-gray-600');
+            });
+            event?.currentTarget?.classList?.remove('font-medium', 'text-gray-600');
+            event?.currentTarget?.classList?.add('bg-green-50', 'text-green-700', 'font-bold');
+
+            toggleMenu();
+            renderizar(); renderizarNotas(); renderizarEncomendas(); renderizarHistorico(); renderizarEspacosSelect(); renderizarEspacosGerencia(); renderizarReservas();
+            lucide.createIcons();
+        }
+
+        function exportarDados() {
+            const dadosCompletos = {
+                moradores: moradores,
+                notas: notas,
+                reservas: reservas,
+                encomendas: encomendas,
+                espacos: espacos
+            };
+            
+            const dadosStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosCompletos, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dadosStr);
+            downloadAnchor.setAttribute("download", "backup_sistema_condominio.json");
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        }
+
+        function importarDados(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const dados = JSON.parse(e.target.result);
+                    
+                    // Compatibilidade com arquivos antigos (apenas array de moradores)
+                    if (Array.isArray(dados)) {
+                        moradores = dados;
+                        localStorage.setItem('lista_condominio', JSON.stringify(moradores));
+                        renderizar();
+                        alert("Moradores importados com sucesso!");
+                        return;
+                    }
+
+                    // Novo formato completo de backup
+                    if (dados && typeof dados === 'object') {
+                        if (Array.isArray(dados.moradores)) {
+                            moradores = dados.moradores;
+                            localStorage.setItem('lista_condominio', JSON.stringify(moradores));
+                        }
+                        if (Array.isArray(dados.notas)) {
+                            notas = dados.notas;
+                            localStorage.setItem('lista_notas', JSON.stringify(notas));
+                        }
+                        if (Array.isArray(dados.reservas)) {
+                            reservas = dados.reservas;
+                            localStorage.setItem('lista_reservas', JSON.stringify(reservas));
+                        }
+                        if (Array.isArray(dados.encomendas)) {
+                            encomendas = dados.encomendas;
+                            localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
+                        }
+                        if (Array.isArray(dados.espacos)) {
+                            espacos = dados.espacos;
+                            localStorage.setItem('lista_espacos', JSON.stringify(espacos));
+                        }
+
+                        renderizar();
+                        renderizarNotas();
+                        renderizarEncomendas();
+                        renderizarHistorico();
+                        renderizarEspacosSelect();
+                        renderizarEspacosGerencia();
+                        renderizarReservas();
+
+                        alert("Backup completo importado com sucesso!");
+                    } else {
+                        alert("O arquivo JSON não tem o formato esperado.");
+                    }
+                } catch (error) {
+                    alert("Erro ao ler o arquivo JSON.");
+                }
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        function abrirModal(id) {
+            const m = moradores.find(x => x.id === id);
+            if (!m) return;
+            document.getElementById('editId').value = m.id;
+            document.getElementById('editCasa').value = m.casa;
+            document.getElementById('editNome').value = m.nome;
+            document.getElementById('editTelefone').value = m.telefone || '';
+            document.getElementById('modalEdicao').classList.remove('hidden');
+        }
+
+        function fecharModal() {
+            document.getElementById('modalEdicao').classList.add('hidden');
+        }
+
+        function abrirModalEncomenda() {
+            document.getElementById('formEncomendas').reset();
+            document.getElementById('modalEncomenda').classList.remove('hidden');
+        }
+
+        function fecharModalEncomenda() {
+            document.getElementById('modalEncomenda').classList.add('hidden');
+        }
+
+        function abrirModalCasas(contexto = 'busca') {
+            contextoModalCasa = contexto;
+            const grid = document.getElementById('gridCasas');
+            grid.innerHTML = '';
+            const casasUnicas = [...new Set(moradores.map(m => m.casa))].sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
+
+            if (casasUnicas.length === 0) {
+                grid.innerHTML = `<div class="col-span-4 p-4 text-center text-gray-400 italic">Nenhuma casa cadastrada.</div>`;
+            } else {
+                casasUnicas.forEach(casa => {
+                    grid.innerHTML += `<button onclick="selecionarCasaModal('${casa}')" class="bg-green-50 hover:bg-green-600 hover:text-white border border-green-200 text-green-800 font-bold p-3 rounded-xl transition-all text-center shadow-sm">${casa}</button>`;
+                });
+            }
+            document.getElementById('modalCasas').classList.remove('hidden');
+        }
+
+        function fecharModalCasas() { document.getElementById('modalCasas').classList.add('hidden'); }
+        
+        function selecionarCasaModal(casa) {
+            if (contextoModalCasa === 'encomenda') {
+                document.getElementById('encomendaCasa').value = casa;
+                const moradorEncontrado = moradores.find(m => m.casa.toLowerCase() === casa.toLowerCase());
+                if (moradorEncontrado) {
+                    document.getElementById('encomendaDestinatario').value = moradorEncontrado.nome;
+                }
+            } else {
+                document.getElementById('busca').value = casa;
+                renderizar();
+            }
+            fecharModalCasas();
+        }
+
+        function abrirModalLetras() {
+            const grid = document.getElementById('gridLetras');
+            grid.innerHTML = '';
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(letra => {
+                grid.innerHTML += `<button onclick="selecionarLetraBusca('${letra}')" class="bg-green-50 hover:bg-green-600 hover:text-white border border-green-200 text-green-800 font-bold p-3 rounded-xl transition-all text-center shadow-sm">${letra}</button>`;
+            });
+            document.getElementById('modalLetras').classList.remove('hidden');
+        }
+
+        function fecharModalLetras() { document.getElementById('modalLetras').classList.add('hidden'); }
+        function selecionarLetraBusca(letra) { document.getElementById('busca').value = letra.toLowerCase(); fecharModalLetras(); renderizar(); }
+
+        function abrirModalNovoEspaco(nomeAtual = '') { 
+            document.getElementById('formNovoEspaco').reset();
+            document.getElementById('editEspacoAntigo').value = nomeAtual;
+            document.getElementById('tituloModalEspaco').innerText = nomeAtual ? 'Editar Espaço' : 'Cadastrar Novo Espaço';
+            if (nomeAtual) {
+                document.getElementById('nomeNovoEspaco').value = nomeAtual;
+            }
+            document.getElementById('modalNovoEspaco').classList.remove('hidden'); 
+        }
+        function fecharModalNovoEspaco() { document.getElementById('modalNovoEspaco').classList.add('hidden'); }
+
+        document.getElementById('formNovoEspaco').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nomeAntigo = document.getElementById('editEspacoAntigo').value;
+            const nomeNovo = document.getElementById('nomeNovoEspaco').value.trim();
+
+            if (espacos.includes(nomeNovo) && nomeNovo !== nomeAntigo) { 
+                alert("Este espaço já está cadastrado."); 
+                return; 
+            }
+
+            if (nomeAntigo) {
+                // Editando
+                espacos = espacos.map(esp => esp === nomeAntigo ? nomeNovo : esp);
+                reservas = reservas.map(res => res.area === nomeAntigo ? { ...res, area: nomeNovo } : res);
+                localStorage.setItem('lista_reservas', JSON.stringify(reservas));
+                alert("Espaço atualizado com sucesso!");
+            } else {
+                // Criando novo
+                espacos.push(nomeNovo);
+                alert("Espaço cadastrado com sucesso!");
+            }
+
+            localStorage.setItem('lista_espacos', JSON.stringify(espacos));
+            renderizarEspacosSelect();
+            renderizarEspacosGerencia();
+            fecharModalNovoEspaco();
+        });
+
+        function excluirEspaco(nome) {
+            const senhaInformada = prompt("Digite a senha para excluir este espaço:");
+            if (senhaInformada === "@granja123") {
+                espacos = espacos.filter(esp => esp !== nome);
+                localStorage.setItem('lista_espacos', JSON.stringify(espacos));
+                renderizarEspacosSelect();
+                renderizarEspacosGerencia();
+                alert("Espaço excluído com sucesso.");
+            } else if (senhaInformada !== null) {
+                alert("Senha incorreta! A exclusão foi cancelada.");
+            }
+        }
+
+        function renderizarEspacosSelect() {
+            const select = document.getElementById('reservaArea');
+            if(!select) return;
+            select.innerHTML = '<option value="">Selecione o Espaço...</option>';
+            espacos.forEach(espaco => { select.innerHTML += `<option value="${espaco}">${espaco}</option>`; });
+        }
+
+        function renderizarEspacosGerencia() {
+            const lista = document.getElementById('listaEspacosGerencia');
+            if (!lista) return;
+
+            if (espacos.length === 0) {
+                lista.innerHTML = `<div class="p-4 text-center text-gray-400 italic">Nenhum espaço cadastrado.</div>`;
+                return;
+            }
+
+            let html = '';
+            espacos.forEach(espaco => {
+                html += `
+                    <div class="p-4 flex justify-between items-center group bg-white">
+                        <span class="font-bold text-green-800 text-lg">${espaco}</span>
+                        <div class="flex gap-2">
+                            <button onclick="abrirModalNovoEspaco('${espaco}')" class="p-2 text-gray-400 hover:text-blue-600 transition-colors" title="Editar Espaço">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="excluirEspaco('${espaco}')" class="p-2 text-gray-400 hover:text-red-600 transition-colors" title="Excluir Espaço (Exige Senha)">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>`;
+            });
+            lista.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        document.getElementById('formEditar').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const senhaInformada = prompt("Digite a senha para salvar as alterações do morador:");
+            if (senhaInformada === "@granja123") {
+                const id = parseInt(document.getElementById('editId').value);
+                moradores = moradores.map(m => m.id === id ? { 
+                    id, 
+                    casa: document.getElementById('editCasa').value, 
+                    nome: document.getElementById('editNome').value, 
+                    telefone: document.getElementById('editTelefone').value 
+                } : m);
+                localStorage.setItem('lista_condominio', JSON.stringify(moradores));
+                fecharModal();
+                renderizar();
+                alert("Morador atualizado com sucesso.");
+            } else if (senhaInformada !== null) {
+                alert("Senha incorreta! As alterações foram canceladas.");
+            }
+        });
+
+        document.getElementById('formCadastro').addEventListener('submit', (e) => {
+            e.preventDefault();
+            moradores.push({ id: Date.now(), casa: document.getElementById('numeroCasa').value, nome: document.getElementById('nomeMorador').value, telefone: document.getElementById('telefoneMorador').value });
+            localStorage.setItem('lista_condominio', JSON.stringify(moradores));
+            e.target.reset();
+            mudarAba('busca');
+        });
+
+        function excluirMorador(id) {
+            const senhaInformada = prompt("Digite a senha para excluir este morador:");
+            if (senhaInformada === "@granja123") {
+                moradores = moradores.filter(m => m.id !== id);
+                localStorage.setItem('lista_condominio', JSON.stringify(moradores));
+                renderizar();
+                alert("Morador excluído com sucesso.");
+            } else if (senhaInformada !== null) {
+                alert("Senha incorreta! A exclusão foi cancelada.");
+            }
+        }
+
+        // --- Encomendas ---
+        document.addEventListener('submit', (e) => {
+            if (e.target && e.target.id === 'formEncomendas') {
+                e.preventDefault();
+                const dataAtual = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                encomendas.push({
+                    id: Date.now(),
+                    casa: document.getElementById('encomendaCasa').value,
+                    destinatario: document.getElementById('encomendaDestinatario').value,
+                    idPacote: document.getElementById('encomendaIdPacote').value,
+                    dataChegada: dataAtual,
+                    retiradoPor: null,
+                    dataRetirada: null
+                });
+                localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
+                fecharModalEncomenda();
+                renderizarEncomendas();
+            }
+        });
+
+        function retirarEncomenda(id) {
+            const nomeRetirante = prompt("Digite o nome de quem está retirando a encomenda:");
+            if (nomeRetirante !== null && nomeRetirante.trim() !== "") {
+                const dataRetiradaAtual = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+                
+                encomendas = encomendas.map(enc => {
+                    if (enc.id === id) {
+                        return { ...enc, retiradoPor: nomeRetirante.trim(), dataRetirada: dataRetiradaAtual };
+                    }
+                    return enc;
+                });
+                
+                localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
+                renderizarEncomendas();
+                renderizarHistorico();
+            }
+        }
+
+        function excluirEncomenda(id) {
+            const senhaInformada = prompt("Digite a senha para excluir esta encomenda:");
+            if (senhaInformada === "@granja123") {
+                encomendas = encomendas.filter(e => e.id !== id);
+                localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
+                renderizarEncomendas();
+                renderizarHistorico();
+                alert("Encomenda excluída com sucesso.");
+            } else if (senhaInformada !== null) {
+                alert("Senha incorreta! A exclusão foi cancelada.");
+            }
+        }
+
+        function atualizarVisualizacaoRapida(pendentes) {
+            const container = document.getElementById('visualizacaoRapidaCasas');
+            if (!container) return;
+
+            const casasPendentes = [...new Set(pendentes.map(e => e.casa))];
+            casasPendentes.sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
+
+            if (casasPendentes.length === 0) {
+                container.innerHTML = "Nenhuma encomenda pendente.";
+                container.className = "text-gray-400 italic text-sm bg-green-50 p-3 rounded-lg border border-green-200 min-h-[50px] flex items-center";
+            } else {
+                container.innerHTML = casasPendentes.join(", ");
+                container.className = "text-green-900 font-extrabold text-xl tracking-wider bg-green-50 p-3 rounded-lg border border-green-200 min-h-[50px] flex items-center";
+            }
+        }
+
+        function renderizarEncomendas() {
+            const lista = document.getElementById('listaEncomendas');
+            if(!lista) return;
+
+            const termo = document.getElementById('buscaEncomendas')?.value.toLowerCase() || '';
+            
+            const todasPendentes = encomendas.filter(enc => enc.retiradoPor == null);
+            atualizarVisualizacaoRapida(todasPendentes);
+
+            const pendentesFiltradas = todasPendentes.filter(enc => 
+                enc.casa.toLowerCase().includes(termo) || 
+                enc.destinatario.toLowerCase().includes(termo) || 
+                enc.idPacote.toLowerCase().includes(termo)
+            );
+
+            if (pendentesFiltradas.length === 0) {
+                lista.innerHTML = `<div class="p-4 text-center text-gray-400 italic">Nenhuma encomenda pendente encontrada.</div>`;
+                return;
+            }
+
+            let html = '';
+            pendentesFiltradas.forEach(enc => {
+                html += `
+                    <div class="p-4 flex justify-between items-center group bg-white">
+                        <div>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">Casa / Lote</span>
+                            <span class="text-xl text-green-700 font-bold uppercase block">${enc.casa}</span>
+                            <p class="font-bold text-gray-800 text-md mt-1">Destinatário: ${enc.destinatario}</p>
+                            <p class="text-sm text-gray-600">Pacote / ID: <span class="font-mono bg-gray-100 px-1 rounded">${enc.idPacote}</span></p>
+                            <p class="text-xs text-gray-400 mt-1"><i data-lucide="clock" class="w-3 h-3 inline mr-1"></i>Chegada: ${enc.dataChegada}</p>
+                        </div>
+                        <div class="flex flex-col gap-2 items-end">
+                            <button onclick="retirarEncomenda(${enc.id})" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1 shadow-sm transition-colors" title="Dar baixa na encomenda">
+                                <i data-lucide="check" class="w-4 h-4"></i> Dar Baixa
+                            </button>
+                            <button onclick="excluirEncomenda(${enc.id})" class="text-gray-400 hover:text-red-600 text-xs transition-colors p-1" title="Excluir Registro (Exige Senha)">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>`;
+            });
+            lista.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        function renderizarHistorico() {
+            const lista = document.getElementById('listaHistorico');
+            if(!lista) return;
+
+            const termo = document.getElementById('buscaHistorico')?.value.toLowerCase() || '';
+            const entregues = encomendas.filter(enc => enc.retiradoPor != null && (
+                enc.casa.toLowerCase().includes(termo) || 
+                enc.destinatario.toLowerCase().includes(termo) || 
+                enc.idPacote.toLowerCase().includes(termo) ||
+                enc.retiradoPor.toLowerCase().includes(termo)
+            ));
+
+            if (entregues.length === 0) {
+                lista.innerHTML = `<div class="p-4 text-center text-gray-400 italic">Nenhum histórico encontrado.</div>`;
+                return;
+            }
+
+            let html = '';
+            entregues.forEach(enc => {
+                html += `
+                    <div class="p-4 flex justify-between items-center group bg-gray-50 opacity-90">
+                        <div>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">Casa / Lote</span>
+                            <span class="text-xl text-green-700 font-bold uppercase block">${enc.casa}</span>
+                            <p class="font-bold text-gray-800 text-md mt-1">Destinatário: ${enc.destinatario}</p>
+                            <p class="text-sm text-gray-600">Pacote / ID: <span class="font-mono bg-gray-100 px-1 rounded">${enc.idPacote}</span></p>
+                            <p class="text-xs text-gray-400 mt-1"><i data-lucide="clock" class="w-3 h-3 inline mr-1"></i>Chegada: ${enc.dataChegada}</p>
+                            <p class="text-xs text-green-700 font-bold mt-1"><i data-lucide="check-circle" class="w-3 h-3 inline mr-1"></i>Retirado por ${enc.retiradoPor} em ${enc.dataRetirada}</p>
+                        </div>
+                        <div>
+                            <button onclick="excluirEncomenda(${enc.id})" class="text-gray-400 hover:text-red-600 text-xs transition-colors p-1" title="Excluir Registro (Exige Senha)">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>`;
+            });
+            lista.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        // --- Notas ---
+        document.getElementById('formNotas').addEventListener('submit', (e) => {
+            e.preventDefault();
+            notas.push({ id: Date.now(), casa: document.getElementById('notaCasa').value, texto: document.getElementById('notaTexto').value });
+            localStorage.setItem('lista_notas', JSON.stringify(notas));
+            e.target.reset();
+            renderizarNotas();
+        });
+
+        function abrirModalNota(id) {
+            const nota = notas.find(n => n.id === id);
+            if (!nota) return;
+            document.getElementById('editNotaId').value = nota.id;
+            document.getElementById('editNotaCasa').value = nota.casa;
+            document.getElementById('editNotaTexto').value = nota.texto;
+            document.getElementById('modalEdicaoNota').classList.remove('hidden');
+        }
+
+        function fecharModalNota() {
+            document.getElementById('modalEdicaoNota').classList.add('hidden');
+        }
+
+        document.getElementById('formEditarNota').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const id = parseInt(document.getElementById('editNotaId').value);
+            notas = notas.map(n => n.id === id ? {
+                id,
+                casa: document.getElementById('editNotaCasa').value,
+                texto: document.getElementById('editNotaTexto').value
+            } : n);
+            localStorage.setItem('lista_notas', JSON.stringify(notas));
+            fecharModalNota();
+            renderizarNotas();
+            alert("Anotação atualizada com sucesso.");
+        });
+
+        function excluirNota(id) {
+            // Removida a senha: apaga direto
+            notas = notas.filter(n => n.id !== id);
+            localStorage.setItem('lista_notas', JSON.stringify(notas));
+            renderizarNotas();
+        }
+
+        function renderizarNotas() {
+            const lista = document.getElementById('listaNotas');
+            if(!lista) return;
+            let html = '';
+            notas.forEach(n => {
+                html += `
+                    <div class="p-4 flex justify-between items-center group">
+                        <div>
+                            <p class="font-bold text-blue-900">Casa ${n.casa}</p>
+                            <p class="text-gray-700 mt-1">${n.texto}</p>
+                        </div>
+                        <div class="flex gap-2 opacity-60 group-hover:opacity-100 transition-opacity">
+                            <button onclick="abrirModalNota(${n.id})" class="p-2 text-gray-400 hover:text-blue-600 transition-colors" title="Editar Anotação">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="excluirNota(${n.id})" class="p-2 text-gray-400 hover:text-red-600 transition-colors" title="Apagar Anotação">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>`;
+            });
+            lista.innerHTML = html || `<div class="p-4 text-center text-gray-400 italic">Nenhuma anotação.</div>`;
+            lucide.createIcons();
+        }
+
+        // --- Reservas ---
+        document.getElementById('formReservas').addEventListener('submit', (e) => {
+            e.preventDefault();
+            reservas.push({
+                id: Date.now(),
+                area: document.getElementById('reservaArea').value,
+                data: document.getElementById('reservaData').value,
+                horario: document.getElementById('reservaHora').value,
+                lote: document.getElementById('reservaLote').value
+            });
+            localStorage.setItem('lista_reservas', JSON.stringify(reservas));
+            e.target.reset();
+            renderizarReservas();
+        });
+
+        function excluirReserva(id) {
+            // Adicionada a exigência de senha
+            const senhaInformada = prompt("Digite a senha para excluir esta reserva:");
+            if (senhaInformada === "@granja123") {
+                reservas = reservas.filter(r => r.id !== id);
+                localStorage.setItem('lista_reservas', JSON.stringify(reservas));
+                renderizarReservas();
+                alert("Reserva excluída com sucesso.");
+            } else if (senhaInformada !== null) {
+                alert("Senha incorreta! A exclusão foi cancelada.");
+            }
+        }
+
+        let timerBusca;
+
+        function renderizar() {
+            clearTimeout(timerBusca);
+            timerBusca = setTimeout(() => {
+                const lista = document.getElementById('listaMoradores');
+                if(!lista) return;
+                
+                const termoBusca = document.getElementById('busca').value.trim().toLowerCase();
+                
+                const moradoresFiltrados = moradores.filter(m => {
+                    if (!termoBusca) return true;
+                    const casaStr = m.casa.toLowerCase();
+                    const nomeStr = m.nome.toLowerCase();
+
+                    if (termoBusca.length === 1 && /^[a-z]$/.test(termoBusca)) {
+                        return nomeStr.split(' ').some(palavra => palavra.startsWith(termoBusca));
+                    }
+                    return casaStr === termoBusca || casaStr.startsWith(termoBusca + ' ') || nomeStr.split(' ').some(palavra => palavra.startsWith(termoBusca));
+                });
+
+                if (moradoresFiltrados.length === 0) {
+                    lista.innerHTML = `<div class="p-4 text-center text-gray-400 italic">Nenhum morador encontrado.</div>`;
+                    return;
+                }
+
+                const limiteExibicao = moradoresFiltrados.slice(0, 50);
+                let html = '';
+
+                limiteExibicao.sort((a,b) => a.casa.localeCompare(b.casa, undefined, {numeric: true}))
+                    .forEach(m => {
+                        html += `
+                            <div class="p-4 flex justify-between items-center group">
+                                <div>
+                                    <span class="text-[10px] text-gray-400 font-bold uppercase">Casa</span>
+                                    <span class="text-xl text-red-400 font-bold uppercase">${m.casa}</span>
+                                    <p class="font-bold text-gray-800 text-lg mb-2">${m.nome}</p>
+                                    <a href="tel:${m.telefone}" class="text-sm text-green-700 rounded-sm px-2 ring-1">${m.telefone || 'Sem tel'}</a>
+                                </div>
+                                <div class="flex gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                                    <button onclick="abrirModal(${m.id})" class="p-2 text-gray-400 hover:text-blue-600 transition-colors" title="Editar Morador (Exige Senha)"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                                    <button onclick="excluirMorador(${m.id})" class="p-2 text-gray-400 hover:text-red-600 transition-colors" title="Excluir Morador (Exige Senha)"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                </div>
+                            </div>`;
+                });
+
+                if (moradoresFiltrados.length > 50) {
+                    html += `<div class="p-3 text-center text-xs text-gray-400 bg-gray-50">Mostrando 50 de ${moradoresFiltrados.length} resultados. Refine a busca se necessário.</div>`;
+                }
+
+                lista.innerHTML = html;
+                lucide.createIcons();
+            }, 50);
+        }
+
+        function renderizarReservas() {
+            const lista = document.getElementById('listaReservas');
+            if(!lista) return;
+            
+            if (reservas.length === 0) {
+                lista.innerHTML = `<div class="p-4 text-center text-gray-400 italic">Nenhuma reserva cadastrada.</div>`;
+                return;
+            }
+
+            let html = '';
+            reservas.forEach(r => {
+                let dataFormatada = r.data;
+                if(r.data) {
+                    const partes = r.data.split('-');
+                    if(partes.length === 3) dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
+                }
+
+                html += `
+                    <div class="p-4 flex justify-between items-center group">
+                        <div>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">Lote / Casa: ${r.lote}</span>
+                            <p class="font-bold text-green-800 text-lg">${r.area}</p>
+                            <p class="text-sm text-gray-600">
+                                <i data-lucide="calendar" class="w-3.5 h-3.5 inline mr-1"></i>${dataFormatada || 'Sem data'} 
+                                <i data-lucide="clock" class="w-3.5 h-3.5 inline ml-2 mr-1"></i>${r.horario}
+                            </p>
+                        </div>
+                        <button onclick="excluirReserva(${r.id})" class="p-2 text-gray-400 hover:text-red-600 transition-colors opacity-60 group-hover:opacity-100" title="Excluir Reserva (Exige Senha)">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>`;
+            });
+            lista.innerHTML = html;
+            lucide.createIcons();
+        }
+
+        renderizar();
+        renderizarEncomendas();
+        renderizarHistorico();
+        renderizarEspacosSelect();
+        renderizarEspacosGerencia();
+        renderizarReservas();
+        renderizarNotas();
+        lucide.createIcons();
+    </script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Condomínio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-green-50 min-h-screen p-4 md:p-8">
+
+    <div class="max-w-2xl mx-auto">
+        <!-- Cabeçalho com Botão Hamburger -->
+        <header class="flex justify-between items-center mb-6 bg-white p-4 rounded-xl shadow-sm border border-green-100">
+            <div class="flex items-center gap-3">
+                <button onclick="toggleMenu()" class="p-2 text-green-800 hover:bg-green-50 rounded-lg transition-colors" title="Abrir Menu">
+                    <i data-lucide="menu" class="w-6 h-6"></i>
+                </button>
+                <h1 class="text-xl font-bold text-green-800 flex items-center gap-2">
+                    <i data-lucide="building"></i> Condomínio
+                </h1>
+            </div>
+            <span id="tituloAbaAtual" class="text-sm font-bold text-gray-500 uppercase tracking-wider">Buscar</span>
+        </header>
+
+        <!-- Menu Lateral (Drawer) -->
+        <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 transition-opacity" onclick="toggleMenu()"></div>
+        <div id="sidebar" class="fixed inset-y-0 left-0 w-72 bg-white shadow-2xl z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between">
+            <div>
+                <div class="p-5 border-b border-gray-100 flex justify-between items-center bg-green-800 text-white">
+                    <h2 class="font-bold text-lg flex items-center gap-2">
+                        <i data-lucide="menu"></i> Menu do Sistema
+                    </h2>
+                    <button onclick="toggleMenu()" class="p-1 text-white hover:bg-green-700 rounded-lg transition-colors">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <div class="flex flex-col p-4 gap-2">
+                    <button onclick="mudarAba('busca')" class="menu-btn flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-green-700 bg-green-50 transition-all text-left">
+                        <i data-lucide="search" class="w-5 h-5"></i> Buscar Moradores
+                    </button>
+                    <button onclick="mudarAba('cadastro')" class="menu-btn flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-all text-left">
+                        <i data-lucide="user-plus" class="w-5 h-5"></i> Cadastrar Morador
+                    </button>
+                    <button onclick="mudarAba('encomendas')" class="menu-btn flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-all text-left">
+                        <i data-lucide="package" class="w-5 h-5"></i> Encomendas Pendentes
+                    </button>
+                    <button onclick="mudarAba('historicoEncomendas')" class="menu-btn flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-all text-left">
+                        <i data-lucide="history" class="w-5 h-5"></i> Histórico de Encomendas
+                    </button>
+                    <button onclick="mudarAba('reservas')" class="menu-btn flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-all text-left">
+                        <i data-lucide="calendar-check" class="w-5 h-5"></i> Reservas de Espaços
+                    </button>
+                    <button onclick="mudarAba('espacos')" class="menu-btn flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-all text-left">
+                        <i data-lucide="layout-grid" class="w-5 h-5"></i> Gerenciar Espaços
+                    </button>
+                    <button onclick="mudarAba('notas')" class="menu-btn flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-600 hover:bg-gray-50 transition-all text-left">
+                        <i data-lucide="file-text" class="w-5 h-5"></i> Anotações
+                    </button>
+                </div>
+            </div>
+
+            <!-- Importar / Exportar no Rodapé do Menu Lateral -->
+            <div class="p-4 border-t border-gray-100 flex flex-col gap-2 bg-gray-50">
+                <button onclick="exportarDados()" class="w-full flex items-center gap-2 text-xs text-gray-600 hover:text-green-800 transition-colors uppercase font-bold tracking-wider py-2 px-3 rounded-lg hover:bg-white">
+                    <i data-lucide="download" class="w-4 h-4"></i> Exportar JSON
+                </button>
+                <input type="file" id="importFile" class="hidden" onchange="importarDados(event)">
+                <button onclick="document.getElementById('importFile').click()" class="w-full flex items-center gap-2 text-xs text-gray-600 hover:text-green-800 transition-colors uppercase font-bold tracking-wider py-2 px-3 rounded-lg hover:bg-white">
+                    <i data-lucide="upload" class="w-4 h-4"></i> Importar JSON
+                </button>
+            </div>
+        </div>
+
+        <!-- Conteúdo: Cadastro -->
+        <div id="abaCadastro" class="tab-content hidden">
+            <h2 class="text-lg font-bold text-green-800 mb-3 flex items-center gap-2"><i data-lucide="user-plus"></i> Novo Morador</h2>
+            <form id="formCadastro" class="bg-white p-6 rounded-xl shadow-sm border border-green-100 flex flex-col gap-3">
+                <input type="text" id="numeroCasa" placeholder="Número da Casa" required class="w-full p-3 border rounded-lg">
+                <input type="text" id="nomeMorador" placeholder="Nome do Morador" required class="w-full p-3 border rounded-lg">
+                <input type="tel" id="telefoneMorador" placeholder="Telefone" class="w-full p-3 border rounded-lg">
+                <button type="submit" class="bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition-colors">Salvar Morador</button>
+            </form>
+        </div>
+
+        <!-- Conteúdo: Busca -->
+        <div id="abaBusca" class="tab-content">
+            <div class="flex gap-2 mb-4">
+                <input type="text" oninput="renderizar()" id="busca" placeholder="Buscar por casa ou nome..." class="w-full p-3 border rounded-lg bg-white shadow-sm">
+                <button onclick="abrirModalLetras()" class="bg-green-600 text-white px-4 py-3 rounded-lg font-bold flex items-center justify-center hover:bg-green-700 transition-colors shadow-sm" title="Buscar por Letra">
+                    <i data-lucide="arrow-down-a-z" class="w-5 h-5"></i>
+                </button>
+                <button onclick="abrirModalCasas('busca')" class="bg-green-700 text-white px-4 py-3 rounded-lg font-bold flex items-center justify-center hover:bg-green-800 transition-colors shadow-sm" title="Ver Casas">
+                    <i data-lucide="grid" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="listaMoradores" class="bg-white rounded-xl shadow-sm border border-green-100 divide-y"></div>
+        </div>
+
+        <!-- Conteúdo: Encomendas Pendentes -->
+        <div id="abaEncomendas" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-lg font-bold text-green-800 flex items-center gap-2"><i data-lucide="package"></i> Encomendas Pendentes</h2>
+                <button onclick="abrirModalEncomenda()" class="bg-green-600 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-green-700 transition-colors shadow-sm text-sm">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Nova Encomenda
+                </button>
+            </div>
+
+            <!-- Card Único: Visualização Rápida com números bem destacados -->
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-green-100 mb-4">
+                <h3 class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                    <i data-lucide="eye" class="w-4 h-4 text-green-700"></i> Visualização Rápida (Casas com Encomendas)
+                </h3>
+                <div id="visualizacaoRapidaCasas" class="text-green-900 font-extrabold text-lg tracking-wide bg-green-50 p-3 rounded-lg border border-green-200 min-h-[50px] flex items-center">
+                    Nenhuma encomenda pendente.
+                </div>
+            </div>
+
+            <!-- Campo de Busca de Pendentes -->
+            <div class="mb-4">
+                <input type="text" id="buscaEncomendas" oninput="renderizarEncomendas()" placeholder="Buscar encomenda pendente (casa, destinatário ou ID)..." class="w-full p-3 border rounded-lg bg-white shadow-sm">
+            </div>
+
+            <!-- Lista de Encomendas Pendentes -->
+            <div id="listaEncomendas" class="bg-white rounded-xl shadow-sm border border-green-100 divide-y"></div>
+        </div>
+
+        <!-- Conteúdo: Histórico de Encomendas -->
+        <div id="abaHistoricoEncomendas" class="tab-content hidden">
+            <h2 class="text-lg font-bold text-green-800 mb-3 flex items-center gap-2"><i data-lucide="history"></i> Histórico de Encomendas Entregues</h2>
+            
+            <div class="mb-4">
+                <input type="text" id="buscaHistorico" oninput="renderizarHistorico()" placeholder="Buscar no histórico (casa, destinatário ou retirante)..." class="w-full p-3 border rounded-lg bg-white shadow-sm">
+            </div>
+
+            <div id="listaHistorico" class="bg-white rounded-xl shadow-sm border border-green-100 divide-y"></div>
+        </div>
+
+        <!-- Conteúdo: Reservas -->
+        <div id="abaReservas" class="tab-content hidden">
+            <h2 class="text-lg font-bold text-green-800 mb-3 flex items-center gap-2"><i data-lucide="calendar-check"></i> Gestão de Reservas</h2>
+            <form id="formReservas" class="bg-white p-6 rounded-xl shadow-sm border border-green-100 flex flex-col gap-3 mb-4">
+                <div class="flex gap-2 items-center">
+                    <select id="reservaArea" required class="w-full p-3 border rounded-lg bg-white">
+                        <option value="">Selecione o Espaço...</option>
+                    </select>
+                </div>
+                <div class="flex gap-2">
+                    <input type="date" id="reservaData" required class="w-full p-3 border rounded-lg">
+                    <input type="time" id="reservaHora" required class="w-full p-3 border rounded-lg">
+                </div>
+                <input type="text" id="reservaLote" placeholder="Lote / Casa" required class="w-full p-3 border rounded-lg">
+                <button type="submit" class="bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition-colors">Salvar Reserva</button>
+            </form>
+            <div id="listaReservas" class="bg-white rounded-xl shadow-sm border border-green-100 divide-y"></div>
+        </div>
+
+        <!-- Conteúdo: Gerenciar Espaços -->
+        <div id="abaEspacos" class="tab-content hidden">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-lg font-bold text-green-800 flex items-center gap-2"><i data-lucide="layout-grid"></i> Gerenciar Espaços</h2>
+                <button onclick="abrirModalNovoEspaco()" class="bg-green-600 text-white px-4 py-2 rounded-xl font-bold flex items-center gap-2 hover:bg-green-700 transition-colors shadow-sm text-sm">
+                    <i data-lucide="plus" class="w-4 h-4"></i> Novo Espaço
+                </button>
+            </div>
+            <div id="listaEspacosGerencia" class="bg-white rounded-xl shadow-sm border border-green-100 divide-y"></div>
+        </div>
+
+        <!-- Conteúdo: Anotações -->
+        <div id="abaNotas" class="tab-content hidden">
+            <h2 class="text-lg font-bold text-blue-900 mb-3 flex items-center gap-2"><i data-lucide="file-text"></i> Bloco de Anotações</h2>
+            <form id="formNotas" class="bg-white p-6 rounded-xl shadow-sm border border-green-100 flex flex-col gap-3 mb-4">
+                <input type="text" id="notaCasa" placeholder="Casa" required class="w-full p-3 border rounded-lg">
+                <textarea id="notaTexto" placeholder="Anotação rápida..." required class="w-full p-3 border rounded-lg"></textarea>
+                <button type="submit" class="bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition-colors">Salvar Nota</button>
+            </form>
+            <div id="listaNotas" class="bg-white rounded-xl shadow-sm border border-blue-100 divide-y"></div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modalEdicao" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl relative">
+            <button onclick="fecharModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Editar Morador</h2>
+            <form id="formEditar" class="flex flex-col gap-3">
+                <input type="hidden" id="editId">
+                <input type="text" id="editCasa" placeholder="Casa" required class="w-full p-3 border rounded-lg">
+                <input type="text" id="editNome" placeholder="Nome" required class="w-full p-3 border rounded-lg">
+                <input type="tel" id="editTelefone" placeholder="Telefone" class="w-full p-3 border rounded-lg">
+                <button type="submit" class="bg-blue-600 text-white p-3 rounded-lg font-bold mt-2 hover:bg-blue-700 transition-colors">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Edição Nota -->
+    <div id="modalEdicaoNota" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl relative">
+            <button onclick="fecharModalNota()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Editar Anotação</h2>
+            <form id="formEditarNota" class="flex flex-col gap-3">
+                <input type="hidden" id="editNotaId">
+                <input type="text" id="editNotaCasa" placeholder="Casa" required class="w-full p-3 border rounded-lg">
+                <textarea id="editNotaTexto" placeholder="Anotação..." required class="w-full p-3 border rounded-lg"></textarea>
+                <button type="submit" class="bg-blue-600 text-white p-3 rounded-lg font-bold mt-2 hover:bg-blue-700 transition-colors">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Nova Encomenda -->
+    <div id="modalEncomenda" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl relative">
+            <button onclick="fecharModalEncomenda()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><i data-lucide="package-plus"></i> Registrar Encomenda</h2>
+            <form id="formEncomendas" class="flex flex-col gap-3">
+                <div class="flex gap-2">
+                    <input type="text" id="encomendaCasa" placeholder="Selecione ou digite a Casa / Lote" required readonly onclick="abrirModalCasas('encomenda')" class="w-full p-3 border rounded-lg bg-gray-50 cursor-pointer" title="Clique para selecionar a casa">
+                    <button type="button" onclick="abrirModalCasas('encomenda')" class="bg-green-700 text-white px-4 py-3 rounded-lg font-bold flex items-center justify-center hover:bg-green-800 transition-colors shadow-sm" title="Selecionar Casa">
+                        <i data-lucide="grid" class="w-5 h-5"></i>
+                    </button>
+                </div>
+                <input type="text" id="encomendaDestinatario" placeholder="Nome do Destinatário" required class="w-full p-3 border rounded-lg">
+                <input type="text" id="encomendaIdPacote" placeholder="Identificação / ID do Pacote (Ex: Correios, ML, Código)" required class="w-full p-3 border rounded-lg">
+                <button type="submit" class="bg-green-600 text-white p-3 rounded-lg font-bold mt-2 hover:bg-green-700 transition-colors">Salvar Encomenda</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modalCasas" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl relative max-h-[80vh] flex flex-col">
+            <button onclick="fecharModalCasas()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Selecionar Casa</h2>
+            <div id="gridCasas" class="grid grid-cols-4 gap-3 overflow-y-auto p-1"></div>
+        </div>
+    </div>
+
+    <div id="modalLetras" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-lg rounded-2xl p-6 shadow-xl relative max-h-[80vh] flex flex-col">
+            <button onclick="fecharModalLetras()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Buscar por Letra Inicial</h2>
+            <div id="gridLetras" class="grid grid-cols-4 md:grid-cols-6 gap-3 overflow-y-auto p-1"></div>
+        </div>
+    </div>
+
+    <div id="modalNovoEspaco" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl relative">
+            <button onclick="fecharModalNovoEspaco()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
+            <h2 class="text-xl font-bold text-gray-800 mb-4" id="tituloModalEspaco">Cadastrar Novo Espaço</h2>
+            <form id="formNovoEspaco" class="flex flex-col gap-3">
+                <input type="hidden" id="editEspacoAntigo">
+                <input type="text" id="nomeNovoEspaco" placeholder="Nome do Espaço" required class="w-full p-3 border rounded-lg">
+                <button type="submit" class="bg-green-600 text-white p-3 rounded-lg font-bold mt-2 hover:bg-green-700 transition-colors">Salvar Espaço</button>
+            </form>
+        </div>
+    </div>
+<script src="app.js">app.js</script>
+</body>
+</html>
