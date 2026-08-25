@@ -1,10 +1,54 @@
+        // Suas credenciais do JSONBin
+        const BIN_ID = '6a8ca917da38895dfe0c130b';
+        const MASTER_KEY = '$2a$10$dQGLRurlOEnFFy4JdgxjxOLObuCSsZflIg.lBeAR.nzdcGdOHgIjq';
+        
+        // Suas credenciais do JSONBin (já configuradas)
+async function salvarNaNuvem() {
+    try {
+        // Monta o objeto completo de backup com todas as suas listas atuais
+        const dadosCompletos = {
+            moradores: typeof moradores !== 'undefined' ? moradores : [],
+            notas: typeof notas !== 'undefined' ? notas : [],
+            reservas: typeof reservas !== 'undefined' ? reservas : [],
+            encomendas: typeof encomendas !== 'undefined' ? encomendas : [],
+            espacos: typeof espacos !== 'undefined' ? espacos : []
+        };
 
+        console.log("Enviando dados para a nuvem...");
+
+        const resposta = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Master-Key': MASTER_KEY
+            },
+            body: JSON.stringify(dadosCompletos)
+        });
+
+        if (!resposta.ok) throw new Error('Erro ao salvar na nuvem');
+
+        const resultado = await resposta.json();
+        console.log("Dados salvos e sincronizados com sucesso na nuvem!", resultado);
+        
+        // Opcional: um aviso sutil ou alerta na tela
+        alert("Alterações salvas na nuvem com sucesso!");
+
+    } catch (error) {
+        console.error("Erro:", error);
+        alert("Erro ao tentar salvar os dados na nuvem.");
+    }
+}
+
+        // 1. CARREGAR OS DADOS (Use quando a página abrir)
+        
         let moradores = JSON.parse(localStorage.getItem('lista_condominio')) || [];
         let notas = JSON.parse(localStorage.getItem('lista_notas')) || [];
         let reservas = JSON.parse(localStorage.getItem('lista_reservas')) || [];
         let encomendas = JSON.parse(localStorage.getItem('lista_encomendas')) || [];
         let espacos = JSON.parse(localStorage.getItem('lista_espacos')) || ['Salão de Festas'];
         let contextoModalCasa = 'busca';
+        
+
 
         function toggleMenu() {
             const sidebar = document.getElementById('sidebar');
@@ -55,7 +99,7 @@
                 encomendas: encomendas,
                 espacos: espacos
             };
-            
+        
             const dadosStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosCompletos, null, 2));
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dadosStr);
@@ -65,66 +109,76 @@
             downloadAnchor.remove();
         }
 
-        function importarDados(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+// Suas credenciais do JSONBin
 
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                try {
-                    const dados = JSON.parse(e.target.result);
-                    
-                    // Compatibilidade com arquivos antigos (apenas array de moradores)
-                    if (Array.isArray(dados)) {
-                        moradores = dados;
-                        localStorage.setItem('lista_condominio', JSON.stringify(moradores));
-                        renderizar();
-                        alert("Moradores importados com sucesso!");
-                        return;
-                    }
+async function carregarDaNuvem() {
+    try {
+        // Mostra um aviso opcional de carregando (se quiser)
+        console.log("Baixando dados da nuvem...");
 
-                    // Novo formato completo de backup
-                    if (dados && typeof dados === 'object') {
-                        if (Array.isArray(dados.moradores)) {
-                            moradores = dados.moradores;
-                            localStorage.setItem('lista_condominio', JSON.stringify(moradores));
-                        }
-                        if (Array.isArray(dados.notas)) {
-                            notas = dados.notas;
-                            localStorage.setItem('lista_notas', JSON.stringify(notas));
-                        }
-                        if (Array.isArray(dados.reservas)) {
-                            reservas = dados.reservas;
-                            localStorage.setItem('lista_reservas', JSON.stringify(reservas));
-                        }
-                        if (Array.isArray(dados.encomendas)) {
-                            encomendas = dados.encomendas;
-                            localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
-                        }
-                        if (Array.isArray(dados.espacos)) {
-                            espacos = dados.espacos;
-                            localStorage.setItem('lista_espacos', JSON.stringify(espacos));
-                        }
+        const resposta = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+            headers: {
+                'X-Master-Key': MASTER_KEY
+            }
+        });
 
-                        renderizar();
-                        renderizarNotas();
-                        renderizarEncomendas();
-                        renderizarHistorico();
-                        renderizarEspacosSelect();
-                        renderizarEspacosGerencia();
-                        renderizarReservas();
+        if (!resposta.ok) throw new Error('Erro ao carregar da nuvem');
 
-                        alert("Backup completo importado com sucesso!");
-                    } else {
-                        alert("O arquivo JSON não tem o formato esperado.");
-                    }
-                } catch (error) {
-                    alert("Erro ao ler o arquivo JSON.");
-                }
-                event.target.value = '';
-            };
-            reader.readAsText(file);
+        const resultado = await resposta.json();
+        const dados = resultado.record; // Aqui está o objeto JSON vindo do JSONBin
+
+        // Compatibilidade com arquivos antigos (apenas array de moradores)
+        if (Array.isArray(dados)) {
+            moradores = dados;
+            localStorage.setItem('lista_condominio', JSON.stringify(moradores));
+            renderizar();
+            alert("Moradores carregados da nuvem com sucesso!");
+            return;
         }
+
+        // Novo formato completo de backup (igualzinho ao seu código original)
+        if (dados && typeof dados === 'object') {
+            if (Array.isArray(dados.moradores)) {
+                moradores = dados.moradores;
+                localStorage.setItem('lista_condominio', JSON.stringify(moradores));
+            }
+            if (Array.isArray(dados.notas)) {
+                notas = dados.notas;
+                localStorage.setItem('lista_notas', JSON.stringify(notas));
+            }
+            if (Array.isArray(dados.reservas)) {
+                reservas = dados.reservas;
+                localStorage.setItem('lista_reservas', JSON.stringify(reservas));
+            }
+            if (Array.isArray(dados.encomendas)) {
+                encomendas = dados.encomendas;
+                localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
+            }
+            if (Array.isArray(dados.espacos)) {
+                espacos = dados.espacos;
+                localStorage.setItem('lista_espacos', JSON.stringify(espacos));
+            }
+
+            // Atualiza todas as telas do seu sistema de condomínio
+            if (typeof renderizar === 'function') renderizar();
+            if (typeof renderizarNotas === 'function') renderizarNotas();
+            if (typeof renderizarEncomendas === 'function') renderizarEncomendas();
+            if (typeof renderizarHistorico === 'function') renderizarHistorico();
+            if (typeof renderizarEspacosSelect === 'function') renderizarEspacosSelect();
+            if (typeof renderizarEspacosGerencia === 'function') renderizarEspacosGerencia();
+            if (typeof renderizarReservas === 'function') renderizarReservas();
+
+            console.log("Dados sincronizados com sucesso!");
+        } else {
+            alert("Os dados da nuvem não têm o formato esperado.");
+        }
+
+    } catch (error) {
+        console.error("Erro:", error);
+        alert("Erro ao conectar com a nuvem para carregar os dados.");
+    }
+}
+
 
         function abrirModal(id) {
             const m = moradores.find(x => x.id === id);
@@ -205,45 +259,61 @@
         function fecharModalNovoEspaco() { document.getElementById('modalNovoEspaco').classList.add('hidden'); }
 
         document.getElementById('formNovoEspaco').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const nomeAntigo = document.getElementById('editEspacoAntigo').value;
-            const nomeNovo = document.getElementById('nomeNovoEspaco').value.trim();
+    e.preventDefault();
+    const nomeAntigo = document.getElementById('editEspacoAntigo').value;
+    const nomeNovo = document.getElementById('nomeNovoEspaco').value.trim();
 
-            if (espacos.includes(nomeNovo) && nomeNovo !== nomeAntigo) { 
-                alert("Este espaço já está cadastrado."); 
-                return; 
-            }
+    if (espacos.includes(nomeNovo) && nomeNovo !== nomeAntigo) { 
+        alert("Este espaço já está cadastrado."); 
+        return; 
+    }
 
-            if (nomeAntigo) {
-                // Editando
-                espacos = espacos.map(esp => esp === nomeAntigo ? nomeNovo : esp);
-                reservas = reservas.map(res => res.area === nomeAntigo ? { ...res, area: nomeNovo } : res);
-                localStorage.setItem('lista_reservas', JSON.stringify(reservas));
-                alert("Espaço atualizado com sucesso!");
-            } else {
-                // Criando novo
-                espacos.push(nomeNovo);
-                alert("Espaço cadastrado com sucesso!");
-            }
+    if (nomeAntigo) {
+        // Editando
+        espacos = espacos.map(esp => esp === nomeAntigo ? nomeNovo : esp);
+        reservas = reservas.map(res => res.area === nomeAntigo ? { ...res, area: nomeNovo } : res);
+        localStorage.setItem('lista_reservas', JSON.stringify(reservas));
+        alert("Espaço atualizado com sucesso!");
+    } else {
+        // Criando novo
+        espacos.push(nomeNovo);
+        alert("Espaço cadastrado com sucesso!");
+    }
 
-            localStorage.setItem('lista_espacos', JSON.stringify(espacos));
-            renderizarEspacosSelect();
-            renderizarEspacosGerencia();
-            fecharModalNovoEspaco();
-        });
+    // Salva localmente
+    localStorage.setItem('lista_espacos', JSON.stringify(espacos));
+    
+    // Atualiza a interface
+    renderizarEspacosSelect();
+    renderizarEspacosGerencia();
+    fecharModalNovoEspaco();
+
+    // Sincroniza todas as alterações (espaços e reservas) direto com a nuvem (JSONBin)
+    salvarNaNuvem();
+});
 
         function excluirEspaco(nome) {
-            const senhaInformada = prompt("Digite a senha para excluir este espaço:");
-            if (senhaInformada === "@granja123") {
-                espacos = espacos.filter(esp => esp !== nome);
-                localStorage.setItem('lista_espacos', JSON.stringify(espacos));
-                renderizarEspacosSelect();
-                renderizarEspacosGerencia();
-                alert("Espaço excluído com sucesso.");
-            } else if (senhaInformada !== null) {
-                alert("Senha incorreta! A exclusão foi cancelada.");
-            }
-        }
+    const senhaInformada = prompt("Digite a senha para excluir este espaço:");
+    if (senhaInformada === "@granja123") {
+        // 1. Filtra o array removendo o espaço
+        espacos = espacos.filter(esp => esp !== nome);
+        
+        // 2. Salva localmente
+        localStorage.setItem('lista_espacos', JSON.stringify(espacos));
+        
+        // 3. Atualiza as telas do sistema
+        renderizarEspacosSelect();
+        renderizarEspacosGerencia();
+        
+        // 4. Envia o estado atualizado direto para a nuvem (JSONBin)
+        salvarNaNuvem();
+
+        alert("Espaço excluído com sucesso e sincronizado na nuvem!");
+    } else if (senhaInformada !== null) {
+        alert("Senha incorreta! A exclusão foi cancelada.");
+    }
+}
+
 
         function renderizarEspacosSelect() {
             const select = document.getElementById('reservaArea');
@@ -299,77 +369,71 @@
                 alert("Senha incorreta! As alterações foram canceladas.");
             }
         });
-
-        document.getElementById('formCadastro').addEventListener('submit', (e) => {
-            e.preventDefault();
-            moradores.push({ id: Date.now(), casa: document.getElementById('numeroCasa').value, nome: document.getElementById('nomeMorador').value, telefone: document.getElementById('telefoneMorador').value });
-            localStorage.setItem('lista_condominio', JSON.stringify(moradores));
-            e.target.reset();
-            mudarAba('busca');
-        });
+document.getElementById('formCadastro').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    // 1. Adiciona o novo morador na lista
+    moradores.push({ 
+        id: Date.now(), 
+        casa: document.getElementById('numeroCasa').value, 
+        nome: document.getElementById('nomeMorador').value, 
+        telefone: document.getElementById('telefoneMorador').value 
+    });
+    
+    // 2. Salva localmente
+    localStorage.setItem('lista_condominio', JSON.stringify(moradores));
+    
+    // 3. Reseta o formulário e muda para a aba de busca
+    e.target.reset();
+    mudarAba('busca');
+    
+    // 4. Sincroniza automaticamente com a nuvem (JSONBin)
+    salvarNaNuvem();
+});
 
         function excluirMorador(id) {
-            const senhaInformada = prompt("Digite a senha para excluir este morador:");
-            if (senhaInformada === "@granja123") {
-                moradores = moradores.filter(m => m.id !== id);
-                localStorage.setItem('lista_condominio', JSON.stringify(moradores));
-                renderizar();
-                alert("Morador excluído com sucesso.");
-            } else if (senhaInformada !== null) {
-                alert("Senha incorreta! A exclusão foi cancelada.");
-            }
-        }
+    const senhaInformada = prompt("Digite a senha para excluir este morador:");
+    if (senhaInformada === "@granja123") {
+        // 1. Remove o morador da lista local
+        moradores = moradores.filter(m => m.id !== id);
+        
+        // 2. Salva no localStorage
+        localStorage.setItem('lista_condominio', JSON.stringify(moradores));
+        
+        // 3. Atualiza a interface
+        renderizar();
+        
+        // 4. Envia a lista atualizada direto para o JSONBin (nuvem)
+        salvarNaNuvem();
+
+        alert("Morador excluído com sucesso e sincronizado na nuvem!");
+    } else if (senhaInformada !== null) {
+        alert("Senha incorreta! A exclusão foi cancelada.");
+    }
+}
 
         // --- Encomendas ---
         document.addEventListener('submit', (e) => {
-            if (e.target && e.target.id === 'formEncomendas') {
-                e.preventDefault();
-                const dataAtual = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-                encomendas.push({
-                    id: Date.now(),
-                    casa: document.getElementById('encomendaCasa').value,
-                    destinatario: document.getElementById('encomendaDestinatario').value,
-                    idPacote: document.getElementById('encomendaIdPacote').value,
-                    dataChegada: dataAtual,
-                    retiradoPor: null,
-                    dataRetirada: null
-                });
-                localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
-               // fecharModalEncomenda();
-                renderizarEncomendas();
-            }
+    if (e.target && e.target.id === 'formEncomendas') {
+        e.preventDefault();
+        const dataAtual = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+        encomendas.push({
+            id: Date.now(),
+            casa: document.getElementById('encomendaCasa').value,
+            destinatario: document.getElementById('encomendaDestinatario').value,
+            idPacote: document.getElementById('encomendaIdPacote').value,
+            dataChegada: dataAtual,
+            retiradoPor: null,
+            dataRetirada: null
         });
-
-        function retirarEncomenda(id) {
-            const nomeRetirante = prompt("Digite o nome de quem está retirando a encomenda:");
-            if (nomeRetirante !== null && nomeRetirante.trim() !== "") {
-                const dataRetiradaAtual = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
-                
-                encomendas = encomendas.map(enc => {
-                    if (enc.id === id) {
-                        return { ...enc, retiradoPor: nomeRetirante.trim(), dataRetirada: dataRetiradaAtual };
-                    }
-                    return enc;
-                });
-                
-                localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
-                renderizarEncomendas();
-                renderizarHistorico();
-            }
-        }
-
-        function excluirEncomenda(id) {
-            const senhaInformada = prompt("Digite a senha para excluir esta encomenda:");
-            if (senhaInformada === "@granja123") {
-                encomendas = encomendas.filter(e => e.id !== id);
-                localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
-                renderizarEncomendas();
-                renderizarHistorico();
-                alert("Encomenda excluída com sucesso.");
-            } else if (senhaInformada !== null) {
-                alert("Senha incorreta! A exclusão foi cancelada.");
-            }
-        }
+        
+        localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
+        renderizarEncomendas();
+        
+        // Sincroniza com a nuvem
+        salvarNaNuvem();
+    }
+});
 
         function atualizarVisualizacaoRapida(pendentes) {
             const container = document.getElementById('visualizacaoRapidaCasas');
@@ -472,14 +536,27 @@
             lucide.createIcons();
         }
 
-        // --- Notas ---
-        document.getElementById('formNotas').addEventListener('submit', (e) => {
-            e.preventDefault();
-            notas.push({ id: Date.now(), casa: document.getElementById('notaCasa').value, texto: document.getElementById('notaTexto').value });
-            localStorage.setItem('lista_notas', JSON.stringify(notas));
-            e.target.reset();
-            renderizarNotas();
-        });
+// --- Notas ---
+document.getElementById('formNotas').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    // 1. Adiciona a nova nota na lista
+    notas.push({ 
+        id: Date.now(), 
+        casa: document.getElementById('notaCasa').value, 
+        texto: document.getElementById('notaTexto').value 
+    });
+    
+    // 2. Salva localmente
+    localStorage.setItem('lista_notas', JSON.stringify(notas));
+    
+    // 3. Limpa o formulário e atualiza a tela
+    e.target.reset();
+    renderizarNotas();
+    
+    // 4. Sincroniza automaticamente com a nuvem (JSONBin)
+    salvarNaNuvem();
+});
 
         function abrirModalNota(id) {
             const nota = notas.find(n => n.id === id);
@@ -493,27 +570,44 @@
         function fecharModalNota() {
             document.getElementById('modalEdicaoNota').classList.add('hidden');
         }
+document.getElementById('formEditarNota').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const id = parseInt(document.getElementById('editNotaId').value);
+    
+    notas = notas.map(n => n.id === id ? {
+        id,
+        casa: document.getElementById('editNotaCasa').value,
+        texto: document.getElementById('editNotaTexto').value
+    } : n);
+    
+    // 1. Salva localmente
+    localStorage.setItem('lista_notas', JSON.stringify(notas));
+    
+    // 2. Fecha o modal e atualiza a tela
+    fecharModalNota();
+    renderizarNotas();
+    
+    // 3. Sincroniza a alteração na nuvem (JSONBin)
+    salvarNaNuvem();
+    
+    alert("Anotação atualizada com sucesso.");
+});
 
-        document.getElementById('formEditarNota').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const id = parseInt(document.getElementById('editNotaId').value);
-            notas = notas.map(n => n.id === id ? {
-                id,
-                casa: document.getElementById('editNotaCasa').value,
-                texto: document.getElementById('editNotaTexto').value
-            } : n);
-            localStorage.setItem('lista_notas', JSON.stringify(notas));
-            fecharModalNota();
-            renderizarNotas();
-            alert("Anotação atualizada com sucesso.");
-        });
+function excluirNota(id) {
+    // Removida a senha: apaga direto
+    notas = notas.filter(n => n.id !== id);
+    
+    // Salva localmente
+    localStorage.setItem('lista_notas', JSON.stringify(notas));
+    
+    // Atualiza a tela
+    renderizarNotas();
+    
+    // Sincroniza a remoção com a nuvem (JSONBin)
+    salvarNaNuvem();
+}
 
-        function excluirNota(id) {
-            // Removida a senha: apaga direto
-            notas = notas.filter(n => n.id !== id);
-            localStorage.setItem('lista_notas', JSON.stringify(notas));
-            renderizarNotas();
-        }
+        
 
         function renderizarNotas() {
             const lista = document.getElementById('listaNotas');
@@ -540,33 +634,28 @@
             lucide.createIcons();
         }
 
-        // --- Reservas ---
-        document.getElementById('formReservas').addEventListener('submit', (e) => {
-            e.preventDefault();
-            reservas.push({
-                id: Date.now(),
-                area: document.getElementById('reservaArea').value,
-                data: document.getElementById('reservaData').value,
-                horario: document.getElementById('reservaHora').value,
-                lote: document.getElementById('reservaLote').value
-            });
-            localStorage.setItem('lista_reservas', JSON.stringify(reservas));
-            e.target.reset();
-            renderizarReservas();
-        });
+// --- Reservas ---
+document.getElementById('formReservas').addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    // Adiciona a nova reserva na lista
+    reservas.push({
+        id: Date.now(),
+        area: document.getElementById('reservaArea').value,
+        data: document.getElementById('reservaData').value,
+        horario: document.getElementById('reservaHora').value,
+        lote: document.getElementById('reservaLote').value
+    });
+    
+    // Salva localmente
+    localStorage.setItem('lista_reservas', JSON.stringify(reservas));
+    e.target.reset();
+    renderizarReservas();
+    
+    // Sincroniza automaticamente com a nuvem (JSONBin)
+    salvarNaNuvem();
+});
 
-        function excluirReserva(id) {
-            // Adicionada a exigência de senha
-            const senhaInformada = prompt("Digite a senha para excluir esta reserva:");
-            if (senhaInformada === "@granja123") {
-                reservas = reservas.filter(r => r.id !== id);
-                localStorage.setItem('lista_reservas', JSON.stringify(reservas));
-                renderizarReservas();
-                alert("Reserva excluída com sucesso.");
-            } else if (senhaInformada !== null) {
-                alert("Senha incorreta! A exclusão foi cancelada.");
-            }
-        }
 
         let timerBusca;
 
@@ -658,6 +747,10 @@
             lista.innerHTML = html;
             lucide.createIcons();
         }
+    // Assim que o site abre no celular ou computador, ele busca os dados atualizados
+window.addEventListener('DOMContentLoaded', () => {
+    carregarDaNuvem();
+});
 
         renderizar();
         renderizarEncomendas();
