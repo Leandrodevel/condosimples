@@ -495,6 +495,86 @@ document.getElementById('formCadastro').addEventListener('submit', (e) => {
             lista.innerHTML = html;
             lucide.createIcons();
         }
+// Garanta que esta função está no escopo global (fora de qualquer outra função)
+
+function retirarEncomenda(id) {
+
+    const nomeRetirante = prompt("Digite o nome de quem está retirando a encomenda:");
+
+    if (nomeRetirante !== null && nomeRetirante.trim() !== "") {
+
+        const dataRetiradaAtual = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+
+        
+
+        encomendas = encomendas.map(enc => {
+
+            if (enc.id === id) {
+
+                return { ...enc, retiradoPor: nomeRetirante.trim(), dataRetirada: dataRetiradaAtual };
+
+            }
+
+            return enc;
+
+        });
+
+        
+
+        localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
+
+        renderizarEncomendas();
+
+        renderizarHistorico();
+
+        
+
+        // Sincroniza a baixa da encomenda com a nuvem (JSONBin)
+
+        salvarNaNuvem();
+
+    }
+
+}
+
+
+
+// Garanta que esta também está no escopo global
+
+function excluirEncomenda(id) {
+
+    const senhaInformada = prompt("Digite a senha para excluir esta encomenda:");
+
+    if (senhaInformada === "@granja123") {
+
+        encomendas = encomendas.filter(e => e.id !== id);
+
+        
+
+        localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
+
+        renderizarEncomendas();
+
+        renderizarHistorico();
+
+        
+
+        // Sincroniza a exclusão com a nuvem (JSONBin)
+
+        salvarNaNuvem();
+
+        
+
+        alert("Encomenda excluída com sucesso.");
+
+    } else if (senhaInformada !== null) {
+
+        alert("Senha incorreta! A exclusão foi cancelada.");
+
+    }
+
+}
+
 
         function renderizarHistorico() {
             const lista = document.getElementById('listaHistorico');
