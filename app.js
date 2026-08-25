@@ -86,7 +86,7 @@ async function salvarNaNuvem() {
             event?.currentTarget?.classList?.remove('font-medium', 'text-gray-600');
             event?.currentTarget?.classList?.add('bg-green-50', 'text-green-700', 'font-bold');
 
-            toggleMenu();
+           // toggleMenu();
             renderizar(); renderizarNotas(); renderizarEncomendas(); renderizarHistorico(); renderizarEspacosSelect(); renderizarEspacosGerencia(); renderizarReservas();
             lucide.createIcons();
         }
