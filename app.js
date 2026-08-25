@@ -351,7 +351,7 @@ async function carregarDaNuvem() {
         }
         // editar morador
         
-Document.getElementById('formEditar').addEventListener('submit', (e) => {
+document.getElementById('formEditar').addEventListener('submit', (e) => {
     e.preventDefault();
     const senhaInformada = prompt("Digite a senha para salvar as alterações do morador:");
     if (senhaInformada === "@granja123") {
