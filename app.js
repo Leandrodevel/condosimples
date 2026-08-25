@@ -764,12 +764,13 @@ document.getElementById('formReservas').addEventListener('submit', (e) => {
                     const casaStr = m.casa.toLowerCase();
                     const nomeStr = m.nome.toLowerCase();
 
-                    if (termoBusca.length === 1 && /^[a-z]$/.test(termoBusca)) {
-                        return nomeStr.split(' ').some(palavra => palavra.startsWith(termoBusca));
-                    }
-                    return casaStr === termoBusca || casaStr.startsWith(termoBusca + ' ') || nomeStr.split(' ').some(palavra => palavra.startsWith(termoBusca));
-                });
+                if (termoBusca.length === 1 && /^[a-z]$/.test(termoBusca)) {
+    return nomeStr.split(' ').some(palavra => palavra.startsWith(termoBusca));
+}
 
+return casaStr === termoBusca || 
+       casaStr.startsWith(termoBusca + ' ') || 
+       nomeStr.includes(termoBusca);
                 if (moradoresFiltrados.length === 0) {
                     lista.innerHTML = `<div class="p-4 text-center text-gray-400 italic">Nenhum morador encontrado.</div>`;
                     return;
