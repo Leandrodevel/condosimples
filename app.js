@@ -63,7 +63,33 @@ async function salvarNaNuvem() {
                 overlay.classList.remove('hidden');
             }
         }
+        
+        function mudarAbaNav(aba) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById('aba' + aba.charAt(0).toUpperCase() + aba.slice(1)).classList.remove('hidden');
+            
+            const nomesAbas = { 
+                'busca': 'Buscar', 
+                'cadastro': 'Cadastrar', 
+                'encomendas': 'Pendentes', 
+                'historicoEncomendas': 'Histórico',
+                'reservas': 'Reservas', 
+                'espacos': 'Espaços',
+                'notas': 'Anotações' 
+            };
+            document.getElementById('tituloAbaAtual').innerText = nomesAbas[aba] || '';
 
+            document.querySelectorAll('.menu-btn').forEach(btn => {
+                btn.classList.remove('bg-green-50', 'text-green-700', 'font-bold');
+                btn.classList.add('font-medium', 'text-gray-600');
+            });
+            event?.currentTarget?.classList?.remove('font-medium', 'text-gray-600');
+            event?.currentTarget?.classList?.add('bg-green-50', 'text-green-700', 'font-bold');
+
+          // toggleMenu();
+            renderizar(); renderizarNotas(); renderizarEncomendas(); renderizarHistorico(); renderizarEspacosSelect(); renderizarEspacosGerencia(); renderizarReservas();
+            lucide.createIcons();
+        }
         function mudarAba(aba) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
             document.getElementById('aba' + aba.charAt(0).toUpperCase() + aba.slice(1)).classList.remove('hidden');
@@ -86,7 +112,7 @@ async function salvarNaNuvem() {
             event?.currentTarget?.classList?.remove('font-medium', 'text-gray-600');
             event?.currentTarget?.classList?.add('bg-green-50', 'text-green-700', 'font-bold');
 
-           // toggleMenu();
+            toggleMenu();
             renderizar(); renderizarNotas(); renderizarEncomendas(); renderizarHistorico(); renderizarEspacosSelect(); renderizarEspacosGerencia(); renderizarReservas();
             lucide.createIcons();
         }
