@@ -767,7 +767,7 @@ document.getElementById('formReservas').addEventListener('submit', (e) => {
             const nomeStr = m.nome.toLowerCase();
 
             if (termoBusca.length === 1 && /^[a-z]$/.test(termoBusca)) {
-                return nomeStr.split(' ').some(palavra => palavra.startsWith(termoBusca));
+                return nomeStr.some(palavra => palavra.startsWith(termoBusca));
             }
                 
             return casaStr === termoBusca || 
