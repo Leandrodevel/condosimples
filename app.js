@@ -751,57 +751,54 @@ document.getElementById('formReservas').addEventListener('submit', (e) => {
 
         let timerBusca;
 
-        function renderizar() {
-            clearTimeout(timerBusca);
-            timerBusca = setTimeout(() => {
-                const lista = document.getElementById('listaMoradores');
-                if(!lista) return;
+
+   function renderizar() {
+    clearTimeout(timerBusca);
+        
+    timerBusca = setTimeout(() => {
+        const lista = document.getElementById('listaMoradores');
+        if(!lista) return;
+        
+        const termoBusca = document.getElementById('busca').value.trim().toLowerCase();
+        
+        const moradoresFiltrados = moradores.filter(m => {
+            if (!termoBusca) return true;
+            const casaStr = m.casa.toLowerCase();
+            const nomeStr = m.nome.toLowerCase();
+
+            if (termoBusca.length === 1 && /^[a-z]$/.test(termoBusca)) {
+                return nomeStr.split(' ').some(palavra => palavra.startsWith(termoBusca));
+            }
                 
-                const termoBusca = document.getElementById('busca').value.trim().toLowerCase();
-                
-                const moradoresFiltrados = moradores.filter(m => {
-                    if (!termoBusca) return true;
-                    const casaStr = m.casa.toLowerCase();
-                    const nomeStr = m.nome.toLowerCase();
+            return casaStr === termoBusca || 
+                   casaStr.startsWith(termoBusca + ' ') || 
+                   nomeStr.includes(termoBusca);
+        });
 
-                if (termoBusca.length === 1 && /^[a-z]$/.test(termoBusca)) {
-                    return nomeStr.split(' ').some(palavra => palavra.startsWith(termoBusca));
+        const limiteExibicao = moradoresFiltrados;
+        let html = '';
 
-                }
-                        
-                return casaStr === termoBusca || 
-               casaStr.startsWith(termoBusca + ' ') || 
-               nomeStr.includes(termoBusca);
-             
-              
-                const limiteExibicao = moradoresFiltrados
-                let html = '';
+        limiteExibicao.sort((a,b) => a.casa.localeCompare(b.casa, undefined, {numeric: true}))
+            .forEach(m => {
+                html += `
+                    <div class="p-4 flex justify-between items-center group">
+                        <div>
+                            <span class="text-[10px] text-gray-400 font-bold uppercase">Casa</span>
+                            <span class="text-xl text-red-400 font-bold uppercase">${m.casa}</span>
+                            <p class="font-bold text-gray-800 text-lg mb-2">${m.nome}</p>
+                            <a href="tel:${m.telefone}" class="text-sm text-green-700 rounded-sm px-2 ring-1">${m.telefone || 'Sem tel'}</a>
+                        </div>
+                        <div class="flex gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                            <button onclick="abrirModal(${m.id})" class="p-2 text-gray-400 hover:text-blue-600 transition-colors" title="Editar Morador (Exige Senha)"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                            <button onclick="excluirMorador(${m.id})" class="p-2 text-gray-400 hover:text-red-600 transition-colors" title="Excluir Morador (Exige Senha)"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </div>`;
+        });
 
-                limiteExibicao.sort((a,b) => a.casa.localeCompare(b.casa, undefined, {numeric: true}))
-                    .forEach(m => {
-                        html += `
-                            <div class="p-4 flex justify-between items-center group">
-                                <div>
-                                    <span class="text-[10px] text-gray-400 font-bold uppercase">Casa</span>
-                                    <span class="text-xl text-red-400 font-bold uppercase">${m.casa}</span>
-                                    <p class="font-bold text-gray-800 text-lg mb-2">${m.nome}</p>
-                                    <a href="tel:${m.telefone}" class="text-sm text-green-700 rounded-sm px-2 ring-1">${m.telefone || 'Sem tel'}</a>
-                                </div>
-                                <div class="flex gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                                    <button onclick="abrirModal(${m.id})" class="p-2 text-gray-400 hover:text-blue-600 transition-colors" title="Editar Morador (Exige Senha)"><i data-lucide="pencil" class="w-4 h-4"></i></button>
-                                    <button onclick="excluirMorador(${m.id})" class="p-2 text-gray-400 hover:text-red-600 transition-colors" title="Excluir Morador (Exige Senha)"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
-                                </div>
-                            </div>`;
-                });
-
-                if (moradoresFiltrados.length > 50) {
-                    html += `<div class="p-3 text-center text-xs text-gray-400 bg-gray-50">Mostrando 50 de ${moradoresFiltrados.length} resultados. Refine a busca se necessário.</div>`;
-                }
-
-                lista.innerHTML = html;
-                lucide.createIcons();
-            }, 50);
-        }
+        lista.innerHTML = html;
+        lucide.createIcons();
+    }, 50);
+}
 
         function renderizarReservas() {
             const lista = document.getElementById('listaReservas');
