@@ -3,8 +3,8 @@
   "short_name": "Condomínio",
   "start_url": "http://192.168.1.100:8080/",
   "display": "standalone",
-  "background_color": "#4c9c54",
-  "theme_color": "#4c9c54",
+  "background_color": "#5D9E4A",
+  "theme_color": "#5D9E4A",
   "icons": [
     {
       "src": "icon.png",
