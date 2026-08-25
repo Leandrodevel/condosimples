@@ -243,6 +243,10 @@ async function carregarDaNuvem() {
             });
             document.getElementById('modalLetras').classList.remove('hidden');
         }
+     function limparBusca() { 
+        document.getElementById('busca').value = '';
+         renderizar();
+     }
 
         function fecharModalLetras() { document.getElementById('modalLetras').classList.add('hidden'); }
         function selecionarLetraBusca(letra) { document.getElementById('busca').value = letra.toLowerCase(); fecharModalLetras(); renderizar(); }
