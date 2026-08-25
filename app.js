@@ -438,8 +438,9 @@ document.getElementById('formCadastro').addEventListener('submit', (e) => {
         });
         
         localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
-        renderizarEncomendas();
-        fecharModal()
+       
+            renderizarEncomendas();
+                fecharModal();
         // Sincroniza com a nuvem
         salvarNaNuvem();
             
