@@ -31,7 +31,7 @@ async function salvarNaNuvem() {
         console.log("Dados salvos e sincronizados com sucesso na nuvem!", resultado);
         
         // Opcional: um aviso sutil ou alerta na tela
-        alert("Alterações salvas na nuvem com sucesso!");
+       // alert("Alterações salvas na nuvem com sucesso!");
 
     } catch (error) {
         console.error("Erro:", error);
@@ -132,7 +132,7 @@ async function carregarDaNuvem() {
             moradores = dados;
             localStorage.setItem('lista_condominio', JSON.stringify(moradores));
             renderizar();
-            alert("Moradores carregados da nuvem com sucesso!");
+           // alert("Moradores carregados da nuvem com sucesso!");
             return;
         }
 
@@ -349,26 +349,36 @@ async function carregarDaNuvem() {
             lista.innerHTML = html;
             lucide.createIcons();
         }
+        // editar morador
+        
+Document.getElementById('formEditar').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const senhaInformada = prompt("Digite a senha para salvar as alterações do morador:");
+    if (senhaInformada === "@granja123") {
+        const id = parseInt(document.getElementById('editId').value);
+        moradores = moradores.map(m => m.id === id ? { 
+            id, 
+            casa: document.getElementById('editCasa').value, 
+            nome: document.getElementById('editNome').value, 
+            telefone: document.getElementById('editTelefone').value 
+        } : m);
+        
+        // 1. Salva localmente
+        localStorage.setItem('lista_condominio', JSON.stringify(moradores));
+        
+        // 2. Fecha o modal e atualiza a tela
+        fecharModal();
+        renderizar();
+        
+        // 3. Sincroniza as alterações com a nuvem (JSONBin)
+        salvarNaNuvem();
+        
+        alert("Morador atualizado com sucesso.");
+    } else if (senhaInformada !== null) {
+        alert("Senha incorreta! As alterações foram canceladas.");
+    }
+});
 
-        document.getElementById('formEditar').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const senhaInformada = prompt("Digite a senha para salvar as alterações do morador:");
-            if (senhaInformada === "@granja123") {
-                const id = parseInt(document.getElementById('editId').value);
-                moradores = moradores.map(m => m.id === id ? { 
-                    id, 
-                    casa: document.getElementById('editCasa').value, 
-                    nome: document.getElementById('editNome').value, 
-                    telefone: document.getElementById('editTelefone').value 
-                } : m);
-                localStorage.setItem('lista_condominio', JSON.stringify(moradores));
-                fecharModal();
-                renderizar();
-                alert("Morador atualizado com sucesso.");
-            } else if (senhaInformada !== null) {
-                alert("Senha incorreta! As alterações foram canceladas.");
-            }
-        });
 document.getElementById('formCadastro').addEventListener('submit', (e) => {
     e.preventDefault();
     
