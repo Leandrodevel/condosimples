@@ -537,66 +537,131 @@ function selecionarCasa(casaId) {
 }
 
 
-        function atualizarVisualizacaoRapida(pendentes) {
-            const container = document.getElementById('visualizacaoRapidaCasas');
-            if (!container) return;
+  function atualizarVisualizacaoRapida(pendentes) {
+    const container = document.getElementById('visualizacaoRapidaCasas');
+    if (!container) return;
 
-            const casasPendentes = [...new Set(pendentes.map(e => e.casa))];
-            casasPendentes.sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
+    const casasPendentes = [...new Set(pendentes.map(e => e.casa))];
+    casasPendentes.sort((a, b) => a.localeCompare(b, undefined, {numeric: true}));
 
-            if (casasPendentes.length === 0) {
-                container.innerHTML = "Nenhuma encomenda pendente.";
-                container.className = "text-gray-400 italic text-sm bg-green-50 p-3 rounded-lg border border-green-200 min-h-[50px] flex items-center";
-            } else {
-                container.innerHTML = casasPendentes.join(", ");
-                container.className = "text-green-900 font-extrabold text-xl tracking-wider bg-green-50 p-3 rounded-lg border border-green-200 min-h-[50px] flex items-center";
+    if (casasPendentes.length === 0) {
+        container.innerHTML = "Nenhuma encomenda pendente.";
+        container.className = "text-gray-400 italic text-sm bg-green-50 p-3 rounded-lg border border-green-200 min-h-[50px] flex items-center";
+    } else {
+        const cardsHTML = casasPendentes.map(casa => `
+            <button type="button" 
+                onclick="document.getElementById('buscaEncomendas').value = '${casa}'; document.getElementById('buscaEncomendas').dispatchEvent(new Event('input'));"
+                class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-1.5 px-3 rounded-md shadow-sm transition-all duration-200 text-sm cursor-pointer min-w-[48px] text-center">
+                ${casa}
+            </button>
+        `).join("");
+
+        container.innerHTML = cardsHTML;
+        // Alterado de 'flex' simples para 'flex justify-between' ou 'justify-around'
+        container.className = "flex flex-wrap justify-between gap-2 bg-green-50 p-3 rounded-lg border border-green-200 min-h-[50px] items-center";
+    }
+}
+
+
+
+function renderizarEncomendas() {
+    const lista = document.getElementById('listaEncomendas');
+    if(!lista) return;
+
+    const termo = document.getElementById('buscaEncomendas')?.value.toLowerCase().trim() || '';
+    
+    const todasPendentes = encomendas.filter(enc => enc.retiradoPor == null);
+    atualizarVisualizacaoRapida(todasPendentes);
+
+    let ehBuscaPorCasaExata = false;
+
+    const pendentesFiltradas = todasPendentes.filter(enc => {
+        // Se o campo de busca estiver vazio, mostra todas as pendentes por padrão
+        if (termo === '') return true;
+
+        const casasUnicas = [...new Set(todasPendentes.map(e => e.casa.toLowerCase()))];
+        const éNumeroDeCasaExato = casasUnicas.includes(termo);
+
+        if (éNumeroDeCasaExato) {
+            ehBuscaPorCasaExata = true; // Identifica que é uma busca exclusiva por casa
+            return enc.casa.toLowerCase() === termo;
+        } else {
+            const destinatarioInclui = enc.destinatario.toLowerCase().includes(termo);
+            const idInclui = enc.idPacote.toLowerCase().includes(termo);
+            return destinatarioInclui || idInclui;
+        }
+    });
+
+    if (pendentesFiltradas.length === 0) {
+        lista.innerHTML = `<div class="p-4 text-center text-gray-400 italic">Nenhuma encomenda pendente encontrada.</div>`;
+        return;
+    }
+
+    let html = '';
+    
+    // O botão "Entregar Todos" SÓ APARECE se houver uma busca ativa por casa exata
+    if (ehBuscaPorCasaExata && pendentesFiltradas.length > 0) {
+        const idsFiltrados = pendentesFiltradas.map(enc => enc.id).join(',');
+        html += `
+            <div class="p-3 bg-gray-50 border-b border-gray-100 flex justify-between items-center">
+                <span class="text-xs font-bold text-gray-500">${pendentesFiltradas.length} encomenda(s) para esta casa</span>
+                <button onclick="retirarVariasEncomendas([${idsFiltrados}])" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm transition-colors">
+                    <i data-lucide="check-check" class="w-4 h-4"></i> Entregar Todos (Desta Casa)
+                </button>
+            </div>
+        `;
+    }
+
+    pendentesFiltradas.forEach(enc => {
+        html += `
+            <div class="p-4 flex justify-between items-center group bg-white border-b border-gray-100 last:border-none">
+                <div>
+                    <span class="text-[10px] text-gray-400 font-bold uppercase">Casa / Lote</span>
+                    <span class="text-xl text-green-700 font-bold uppercase block">${enc.casa}</span>
+                    <p class="font-bold text-gray-800 text-md mt-1">Destinatário: ${enc.destinatario}</p>
+                    <p class="text-sm text-gray-600">Pacote / ID: <span class="font-mono bg-gray-100 px-1 rounded">${enc.idPacote}</span></p>
+                    <p class="text-xs text-gray-400 mt-1"><i data-lucide="clock" class="w-3 h-3 inline mr-1"></i>Chegada: ${enc.dataChegada}</p>
+                </div>
+                <div class="flex flex-col gap-2 items-end">
+                    <button onclick="retirarEncomenda(${enc.id})" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1 shadow-sm transition-colors" title="Dar baixa na encomenda">
+                        <i data-lucide="check" class="w-4 h-4"></i> Dar Baixa
+                    </button>
+                    <button onclick="excluirEncomenda(${enc.id})" class="text-gray-400 hover:text-red-600 text-xs transition-colors p-1" title="Excluir Registro (Exige Senha)">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>`;
+    });
+    
+    lista.innerHTML = html;
+    lucide.createIcons();
+}
+
+
+function retirarVariasEncomendas(ids) {
+    if (!ids || ids.length === 0) return;
+
+    if (confirm(`Deseja realmente dar baixa em todas as ${ids.length} encomendas exibidas?`)) {
+        // Percorre todas as encomendas do sistema e atualiza as que estão no array de IDs
+        encomendas = encomendas.map(enc => {
+            if (ids.includes(enc.id)) {
+                return { ...enc, retiradoPor: 'Entregue em lote' }; // Ajuste o campo conforme o padrão do seu sistema
             }
+            return enc;
+        });
+
+        // Salva no localStorage (ou na sua fonte de dados atual)
+        if (typeof salvarDados === 'function') {
+            salvarDados();
         }
 
-        function renderizarEncomendas() {
-            const lista = document.getElementById('listaEncomendas');
-            if(!lista) return;
+        // Atualiza a tela
+        renderizarEncomendas();
+    }
+}
 
-            const termo = document.getElementById('buscaEncomendas')?.value.toLowerCase() || '';
-            
-            const todasPendentes = encomendas.filter(enc => enc.retiradoPor == null);
-            atualizarVisualizacaoRapida(todasPendentes);
 
-            const pendentesFiltradas = todasPendentes.filter(enc => 
-                enc.casa.toLowerCase().includes(termo) || 
-                enc.destinatario.toLowerCase().includes(termo) || 
-                enc.idPacote.toLowerCase().includes(termo)
-            );
 
-            if (pendentesFiltradas.length === 0) {
-                lista.innerHTML = `<div class="p-4 text-center text-gray-400 italic">Nenhuma encomenda pendente encontrada.</div>`;
-                return;
-            }
-
-            let html = '';
-            pendentesFiltradas.forEach(enc => {
-                html += `
-                    <div class="p-4 flex justify-between items-center group bg-white">
-                        <div>
-                            <span class="text-[10px] text-gray-400 font-bold uppercase">Casa / Lote</span>
-                            <span class="text-xl text-green-700 font-bold uppercase block">${enc.casa}</span>
-                            <p class="font-bold text-gray-800 text-md mt-1">Destinatário: ${enc.destinatario}</p>
-                            <p class="text-sm text-gray-600">Pacote / ID: <span class="font-mono bg-gray-100 px-1 rounded">${enc.idPacote}</span></p>
-                            <p class="text-xs text-gray-400 mt-1"><i data-lucide="clock" class="w-3 h-3 inline mr-1"></i>Chegada: ${enc.dataChegada}</p>
-                        </div>
-                        <div class="flex flex-col gap-2 items-end">
-                            <button onclick="retirarEncomenda(${enc.id})" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1 shadow-sm transition-colors" title="Dar baixa na encomenda">
-                                <i data-lucide="check" class="w-4 h-4"></i> Entregar
-                            </button>
-                            <button onclick="excluirEncomenda(${enc.id})" class="text-gray-400 hover:text-red-600 text-xs transition-colors p-1" title="Excluir Registro (Exige Senha)">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>`;
-            });
-            lista.innerHTML = html;
-            lucide.createIcons();
-        }
 // Garanta que esta função está no escopo global (fora de qualquer outra função)
 
 function retirarEncomenda(id) {
