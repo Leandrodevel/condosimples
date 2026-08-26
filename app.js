@@ -226,7 +226,11 @@ async function carregarDaNuvem() {
         }
 
         function fecharModalEncomenda() {
+           const selectDestinatario = document.getElementById('encomendaDestinatario');
+selectDestinatario.innerHTML = '<option value="">Selecione a casa primeiro...</option>';
+selectDestinatario.disabled = true; // Trava o select novamente até escolher uma nova casa
             document.getElementById('modalEncomenda').classList.add('hidden');
+       
         }
 
         function abrirModalCasas(contexto = 'busca') {
@@ -248,18 +252,39 @@ async function carregarDaNuvem() {
         function fecharModalCasas() { document.getElementById('modalCasas').classList.add('hidden'); }
         
         function selecionarCasaModal(casa) {
-            if (contextoModalCasa === 'encomenda') {
-                document.getElementById('encomendaCasa').value = casa;
-                const moradorEncontrado = moradores.find(m => m.casa.toLowerCase() === casa.toLowerCase());
-                if (moradorEncontrado) {
-                    document.getElementById('encomendaDestinatario').value = moradorEncontrado.nome;
-                }
-            } else {
-                document.getElementById('busca').value = casa;
-                renderizar();
-            }
-            fecharModalCasas();
+    // Fecha o modal primeiro
+    document.getElementById('modalCasas').classList.add('hidden');
+
+    // Se o contexto for encomenda, preenche o input e alimenta o select
+    if (contextoModalCasa === 'encomenda') {
+        document.getElementById('encomendaCasa').value = casa;
+        
+        const moradoresDaCasa = moradores.filter(m => m.casa === casa);
+        const selectDestinatario = document.getElementById('encomendaDestinatario');
+        
+        selectDestinatario.innerHTML = '<option value="">Selecione o destinatário...</option>';
+        
+        moradoresDaCasa.forEach(morador => {
+            const option = document.createElement('option');
+            option.value = morador.nome;
+            option.textContent = morador.nome;
+            selectDestinatario.appendChild(option);
+        });
+        
+        selectDestinatario.disabled = false;
+    } 
+    else {
+        // Se for para outro contexto (como a busca de moradores), você coloca a sua lógica atual aqui
+        const inputBusca = document.getElementById('busca'); // Substitua pelo ID real do seu input de busca se for diferente
+        if (inputBusca) {
+            inputBusca.value = casa;
+            // Se você tiver uma função que dispara a busca ao selecionar, chame aqui
+            renderizar()
+        }else{
+            alert('erro -contate o administrador')
         }
+    }
+}
 
         function abrirModalLetras() {
             const grid = document.getElementById('gridLetras');
@@ -452,11 +477,13 @@ document.getElementById('formCadastro').addEventListener('submit', (e) => {
     }
 }
 
-        // --- Encomendas ---
-        document.addEventListener('submit', (e) => {
+// --- Encomendas ---
+document.addEventListener('submit', (e) => {
     if (e.target && e.target.id === 'formEncomendas') {
         e.preventDefault();
+        
         const dataAtual = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
+        
         encomendas.push({
             id: Date.now(),
             casa: document.getElementById('encomendaCasa').value,
@@ -469,13 +496,46 @@ document.getElementById('formCadastro').addEventListener('submit', (e) => {
         
         localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
        
-            renderizarEncomendas();
-         fecharModalEncomenda()
+        renderizarEncomendas();
+        // fecharModalEncomenda();
+        
         // Sincroniza com a nuvem
         salvarNaNuvem();
             
+        // --- ADIÇÃO / AJUSTE SOLICITADO ---
+        const inputIdPacote = document.getElementById('encomendaIdPacote');
+        inputIdPacote.value = ''; // Limpa apenas o ID do pacote
+        inputIdPacote.focus();    // Seleciona/foca automaticamente no input do ID da encomenda
+        
+        // Nota: A casa e o morador (<select>) NÃO são limpos, mantendo os valores na tela.
     }
 });
+
+function selecionarCasa(casaId) {
+    // 1. Define o valor no input da casa
+    document.getElementById('encomendaCasa').value = casaId;
+    
+    // 2. Busca os moradores daquela casa (exemplo de array/função do seu projeto)
+    const moradoresDaCasa = buscarMoradoresPorCasa(casaId); 
+    
+    // 3. Preenche o select de destinatários
+    const selectDestinatario = document.getElementById('encomendaDestinatario');
+    selectDestinatario.innerHTML = '<option value="">Selecione o destinatário...</option>';
+    
+    moradoresDaCasa.forEach(morador => {
+        const option = document.createElement('option');
+        option.value = morador.nome; // ou ID do morador
+        option.textContent = morador.nome;
+        selectDestinatario.appendChild(option);
+    });
+    
+    // 4. Habilita o select
+    selectDestinatario.disabled = false;
+    
+    // 5. Fecha o modal de casas
+    fecharModalCasas();
+}
+
 
         function atualizarVisualizacaoRapida(pendentes) {
             const container = document.getElementById('visualizacaoRapidaCasas');
