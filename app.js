@@ -590,7 +590,7 @@ function selecionarCasa(casaId) {
 }
 
 
-  function atualizarVisualizacaoRapida(pendentes) {
+    function atualizarVisualizacaoRapida(pendentes) {
     const container = document.getElementById('visualizacaoRapidaCasas');
     if (!container) return;
 
@@ -602,18 +602,36 @@ function selecionarCasa(casaId) {
         container.className = "text-gray-400 italic text-sm bg-green-50 p-3 rounded-lg border border-green-200 min-h-[50px] flex items-center";
     } else {
         const cardsHTML = casasPendentes.map(casa => `
-            <button type="button" 
-                onclick="document.getElementById('buscaEncomendas').value = '${casa}'; document.getElementById('buscaEncomendas').dispatchEvent(new Event('input'));"
-                class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-1 px-2 rounded shadow-sm transition-all duration-200 text-xl cursor-pointer min-w-[50px] text-center">
-                ${casa}
-            </button>
+       <button type="button" 
+    onclick="selecionarCasaEVoltarAoTopo('${casa}')"
+    class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-1 px-2 rounded shadow-sm transition-all duration-200 text-xl cursor-pointer min-w-[50px] text-center">
+    ${casa}
+</button>
+
+                
         `).join("");
 
         container.innerHTML = cardsHTML;
         // Alterado para justify-start e gap-1.5 para ficarem bem próximos e alinhados à esquerda
         container.className = "flex flex-wrap justify-start gap-1.5 bg-green-50 p-2.5 rounded-lg border border-green-200 min-h-[50px] items-center";
     }
-  }
+}
+
+function selecionarCasaEVoltarAoTopo(casa) {
+    const inputBusca = document.getElementById('buscaEncomendas');
+    
+    // Atualiza o valor e dispara o evento
+    inputBusca.value = casa;
+    inputBusca.dispatchEvent(new Event('input'));
+    
+    // Remove o foco para o navegador não puxar a tela de volta para o input
+    inputBusca.blur(); 
+    
+    // Rola suavemente até o topo após um breve intervalo
+    setTimeout(() => {
+        inputBusca.scrollIntoView({ top: 0, behavior: 'smooth' });
+    }, 50);
+}
 
 
 function renderizarEncomendas() {
