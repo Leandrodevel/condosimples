@@ -712,20 +712,30 @@ function retirarVariasEncomendas(ids) {
     if (!ids || ids.length === 0) return;
 
     if (confirm(`Deseja realmente dar baixa em todas as ${ids.length} encomendas exibidas?`)) {
-        // Percorre todas as encomendas do sistema e atualiza as que estão no array de IDs
+        const retiradoPor = prompt('Digite o nome de quem está retirando:');
+        
+        if (!retiradoPor || retiradoPor.trim() === '') {
+            alert('A operação foi cancelada. O nome de quem retira é obrigatório.');
+            return;
+        }
+
+        const dataHoraAtual = new Date().toISOString(); // Ou formato brasileiro se preferir
+
         encomendas = encomendas.map(enc => {
             if (ids.includes(enc.id)) {
-                return { ...enc, retiradoPor: 'Entregue em lote' }; // Ajuste o campo conforme o padrão do seu sistema
+                return { 
+                    ...enc, 
+                    retiradoPor: retiradoPor.trim(),
+                    dataRetirada: dataHoraAtual // Ajuste o nome da propriedade conforme o seu sistema
+                };
             }
             return enc;
         });
 
-        // Salva no localStorage (ou na sua fonte de dados atual)
         if (typeof salvarDados === 'function') {
             salvarDados();
         }
 
-        // Atualiza a tela
         renderizarEncomendas();
     }
 }
