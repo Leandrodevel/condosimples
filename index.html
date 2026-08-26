@@ -254,17 +254,29 @@
         <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl relative">
             <button onclick="fecharModalEncomenda()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
             <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2"><i data-lucide="package-plus"></i> Registrar Encomenda</h2>
+                   
             <form id="formEncomendas" class="flex flex-col gap-3">
-                <div class="flex gap-2">
-                    <input type="text" id="encomendaCasa" placeholder="Selecione ou digite a Casa / Lote" required readonly onclick="abrirModalCasas('encomenda')" class="w-full p-3 border rounded-lg bg-gray-50 cursor-pointer" title="Clique para selecionar a casa">
-                    <button type="button" onclick="abrirModalCasas('encomenda')" class="bg-green-700 text-white px-4 py-3 rounded-lg font-bold flex items-center justify-center hover:bg-green-800 transition-colors shadow-sm" title="Selecionar Casa">
-                        <i data-lucide="grid" class="w-5 h-5"></i>
-                    </button>
-                </div>
-                <input type="text" id="encomendaDestinatario" placeholder="Nome do Destinatário" required class="w-full p-3 border rounded-lg">
-                <input type="text" id="encomendaIdPacote" placeholder="Identificação / ID do Pacote (Ex: Correios, ML, Código)" required class="w-full p-3 border rounded-lg">
-                <button type="submit" class="bg-green-600 text-white p-3 rounded-lg font-bold mt-2 hover:bg-green-700 transition-colors">Salvar Encomenda</button>
-            </form>
+    <!-- Seleção da Casa -->
+    <div class="flex gap-2">
+        <input type="text" id="encomendaCasa" placeholder="Selecione ou digite a Casa / Lote" required readonly onclick="abrirModalCasas('encomenda')" class="w-full p-3 border rounded-lg bg-gray-50 cursor-pointer" title="Clique para selecionar a casa">
+        <button type="button" onclick="abrirModalCasas('encomenda')" class="bg-green-700 text-white px-4 py-3 rounded-lg font-bold flex items-center justify-center hover:bg-green-800 transition-colors shadow-sm" title="Selecionar Casa">
+            <i data-lucide="grid" class="w-5 h-5"></i>
+        </button>
+    </div>
+
+    <!-- Select de Moradores (Substituiu o input de texto do destinatário) -->
+    <div id="containerDestinatario">
+        <select id="encomendaDestinatario" required class="w-full p-3 border rounded-lg bg-white cursor-pointer" disabled>
+            <option value="">Selecione a casa primeiro...</option>
+        </select>
+    </div>
+
+    <!-- Identificação do Pacote -->
+    <input type="text" id="encomendaIdPacote" placeholder="Identificação / ID do Pacote (Ex: Correios, ML, Código)" required class="w-full p-3 border rounded-lg">
+    
+    <!-- Botão Salvar -->
+    <button type="submit" class="bg-green-600 text-white p-3 rounded-lg font-bold mt-2 hover:bg-green-700 transition-colors">Salvar Encomenda</button>
+</form>
         </div>
     </div>
 
