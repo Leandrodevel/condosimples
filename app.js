@@ -476,6 +476,30 @@ document.getElementById('formCadastro').addEventListener('submit', (e) => {
         alert("Senha incorreta! A exclusão foi cancelada.");
     }
 }
+function excluirReserva(id) {
+    const senhaInformada = prompt("Digite a senha para excluir esta reserva:");
+    if (senhaInformada === "@granja123") {
+        // 1. Remove a reserva da lista local
+        reservas = reservas.filter(r => r.id !== id);
+        
+        // 2. Salva localmente no localStorage
+        localStorage.setItem('lista_reservas', JSON.stringify(reservas));
+        
+        // 3. Atualiza a interface (certifique-se de chamar a função que renderiza as reservas)
+        if (typeof renderizarReservas === 'function') {
+            renderizarReservas();
+        }
+        
+        // 4. Sincroniza automaticamente com a nuvem (JSONBin)
+        if (typeof salvarNaNuvem === 'function') {
+            salvarNaNuvem();
+        }
+
+        alert("Reserva excluída com sucesso e sincronizada na nuvem!");
+    } else if (senhaInformada !== null) {
+        alert("Senha incorreta! A exclusão foi cancelada.");
+    }
+}
 
 // --- Encomendas ---
 document.addEventListener('submit', (e) => {
