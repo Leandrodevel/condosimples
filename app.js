@@ -709,7 +709,6 @@ function renderizarEncomendas() {
 
 
 function retirarVariasEncomendas(ids) {
-function retirarVariasEncomendas(ids) {
     if (!ids || ids.length === 0) return;
 
     if (confirm(`Deseja realmente dar baixa em todas as ${ids.length} encomendas exibidas?`)) {
