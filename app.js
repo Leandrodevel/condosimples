@@ -551,17 +551,16 @@ function selecionarCasa(casaId) {
         const cardsHTML = casasPendentes.map(casa => `
             <button type="button" 
                 onclick="document.getElementById('buscaEncomendas').value = '${casa}'; document.getElementById('buscaEncomendas').dispatchEvent(new Event('input'));"
-                class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-1.5 px-3 rounded-md shadow-sm transition-all duration-200 text-sm cursor-pointer min-w-[48px] text-center">
+                class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-1 px-2 rounded shadow-sm transition-all duration-200 text-xl cursor-pointer min-w-[50px] text-center">
                 ${casa}
             </button>
         `).join("");
 
         container.innerHTML = cardsHTML;
-        // Alterado de 'flex' simples para 'flex justify-between' ou 'justify-around'
-        container.className = "flex flex-wrap justify-between gap-2 bg-green-50 p-3 rounded-lg border border-green-200 min-h-[50px] items-center";
+        // Alterado para justify-start e gap-1.5 para ficarem bem próximos e alinhados à esquerda
+        container.className = "flex flex-wrap justify-start gap-1.5 bg-green-50 p-2.5 rounded-lg border border-green-200 min-h-[50px] items-center";
     }
-}
-
+  }
 
 
 function renderizarEncomendas() {
