@@ -586,7 +586,7 @@ function selecionarCasa(casaId) {
                         </div>
                         <div class="flex flex-col gap-2 items-end">
                             <button onclick="retirarEncomenda(${enc.id})" class="bg-green-600 hover:bg-green-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center gap-1 shadow-sm transition-colors" title="Dar baixa na encomenda">
-                                <i data-lucide="check" class="w-4 h-4"></i> Dar Baixa
+                                <i data-lucide="check" class="w-4 h-4"></i> Entregar
                             </button>
                             <button onclick="excluirEncomenda(${enc.id})" class="text-gray-400 hover:text-red-600 text-xs transition-colors p-1" title="Excluir Registro (Exige Senha)">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
