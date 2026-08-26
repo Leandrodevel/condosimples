@@ -1,5 +1,5 @@
 // Senha padrão de acesso ao sistema
-const SENHA_SISTEMA = "@207730";
+const SENHA_SISTEMA = "207730";
 
 function fazerLogin() {
     const inputSenha = document.getElementById('senhaLogin').value;
