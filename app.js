@@ -709,6 +709,7 @@ function renderizarEncomendas() {
 
 
 function retirarVariasEncomendas(ids) {
+function retirarVariasEncomendas(ids) {
     if (!ids || ids.length === 0) return;
 
     if (confirm(`Deseja realmente dar baixa em todas as ${ids.length} encomendas exibidas?`)) {
@@ -719,27 +720,38 @@ function retirarVariasEncomendas(ids) {
             return;
         }
 
-        const dataHoraAtual = new Date().toISOString(); // Ou formato brasileiro se preferir
+        // Mantém o mesmo padrão de data da função individual
+        const dataHoraAtual = new Date().toLocaleDateString('pt-BR') + ' ' + new Date().toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
 
         encomendas = encomendas.map(enc => {
             if (ids.includes(enc.id)) {
                 return { 
                     ...enc, 
                     retiradoPor: retiradoPor.trim(),
-                    dataRetirada: dataHoraAtual // Ajuste o nome da propriedade conforme o seu sistema
+                    dataRetirada: dataHoraAtual 
                 };
             }
             return enc;
         });
 
-        if (typeof salvarDados === 'function') {
-            salvarDados();
+        // Salva no localStorage
+        localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
+
+        // Atualiza as telas
+        renderizarEncomendas();
+        if (typeof renderizarHistorico === 'function') {
+            renderizarHistorico();
         }
 
-        renderizarEncomendas();
+        // Envia os dados para a nuvem (mesma função usada na baixa individual)
+        if (typeof salvarNaNuvem === 'function') {
+            salvarNaNuvem();
+        } else if (typeof salvarDados === 'function') {
+            salvarDados();
+        }
     }
 }
-
+    
 
 
 // Garanta que esta função está no escopo global (fora de qualquer outra função)
