@@ -1,4 +1,33 @@
-        // Suas credenciais do JSONBin
+// Senha padrão de acesso ao sistema
+const SENHA_SISTEMA = "@207730";
+
+function fazerLogin() {
+    const inputSenha = document.getElementById('senhaLogin').value;
+    const telaLogin = document.getElementById('telaLogin');
+
+    if (inputSenha === SENHA_SISTEMA) {
+        // Oculta a tela de login
+        telaLogin.classList.add('hidden');
+        
+        // (Opcional) Salva na sessão para lembrar que já logou enquanto a aba estiver aberta
+        sessionStorage.setItem('autenticado', 'true');
+    } else {
+        alert("Senha incorreta! Tente novamente.");
+        document.getElementById('senhaLogin').value = '';
+    }
+}
+
+// Opcional: Verifica se o usuário já fez login ao abrir a página
+window.addEventListener('DOMContentLoaded', () => {
+    const jaLogado = sessionStorage.getItem('autenticado');
+    const telaLogin = document.getElementById('telaLogin');
+    
+    if (jaLogado === 'true' && telaLogin) {
+        telaLogin.classList.add('hidden');
+    }
+});
+
+// Suas credenciais do JSONBin
         const BIN_ID = '6a8ca917da38895dfe0c130b';
         const MASTER_KEY = '$2a$10$dQGLRurlOEnFFy4JdgxjxOLObuCSsZflIg.lBeAR.nzdcGdOHgIjq';
         
