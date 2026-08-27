@@ -1,19 +1,28 @@
 // Senha padrão de acesso ao sistema
 const admin_pass = "207730";
 
-function fazerLogin() {
-    const inputSenha = document.getElementById('senhaLogin').value;
-    const telaLogin = document.getElementById('telaLogin');
 
-    if (inputSenha === admin_pass) {
-        // Oculta a tela de login
-        telaLogin.classList.add('hidden');
-        
-        // (Opcional) Salva na sessão para lembrar que já logou enquanto a aba estiver aberta
-        sessionStorage.setItem('autenticado', 'true');
+// Verifica se já está logado ao carregar a página
+window.addEventListener('DOMContentLoaded', () => {
+    const logado = localStorage.getItem('sistema_logado');
+    if (logado === 'true') {
+        const telaLogin = document.getElementById('telaLogin');
+        if (telaLogin) telaLogin.classList.add('hidden');
+    }
+});
+
+function realizarLoginSimples() {
+    const senhaDigitada = document.getElementById('inputAdminPass').value;
+
+    if (senhaDigitada === admin_pass) {
+        localStorage.setItem('sistema_logado', 'true');
+        const telaLogin = document.getElementById('telaLogin');
+        if (telaLogin) {
+            telaLogin.classList.add('hidden');
+        }
     } else {
         alert("Senha incorreta! Tente novamente.");
-        document.getElementById('senhaLogin').value = '';
+        document.getElementById('inputAdminPass').value = '';
     }
 }
 
