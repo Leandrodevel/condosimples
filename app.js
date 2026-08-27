@@ -624,17 +624,28 @@ document.addEventListener('submit', function(event) {
         renderizarEspacos();
     }
 });
-
 function excluirReserva(idReserva) {
-    const areaAtual = document.getElementById('reservaArea').value;
-    reservas = reservas.filter(r => r.id !== idReserva);
+    const senhaDigitada = prompt("Digite a senha de administrador para excluir esta reserva:");
     
-    localStorage.setItem('lista_reservas', JSON.stringify(reservas));
-    // if (typeof salvarNaNuvem === 'function') salvarNaNuvem();
+    if (senhaDigitada === null) return; // Cancelado pelo usuário
 
-    renderizarReservasDoEspaco(areaAtual);
-    renderizarEspacos();
-    salvarNaNuvem(); // Sincroniza a exclusão com a nuvem
+    if (senhaDigitada === admin_pass) {
+        const areaAtual = document.getElementById('reservaArea').value;
+        reservas = reservas.filter(r => r.id !== idReserva);
+        
+        localStorage.setItem('lista_reservas', JSON.stringify(reservas));
+        
+        renderizarReservasDoEspaco(areaAtual);
+        renderizarEspacos();
+        
+        if (typeof salvarNaNuvem === 'function') {
+            salvarNaNuvem(); // Sincroniza a exclusão com a nuvem
+        }
+        
+        alert("Reserva excluída com sucesso!");
+    } else {
+        alert("Senha incorreta!");
+    }
 }
 function limparReservasAntigas() {
     // Obtém a data atual no formato YYYY-MM-DD (compatível com a string salva no JSON)
