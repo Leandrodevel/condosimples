@@ -249,7 +249,76 @@ async function carregarDaNuvem() {
         encomendas: typeof encomendas !== 'undefined' ? encomendas : [],
         espacos: typeof espacos !== 'undefined' ? espacos : []
     };
+function importarDados(event) {
+    const arquivo = event.target.files[0];
+    if (!arquivo) return;
 
+    const leitor = new FileReader();
+    leitor.onload = function(e) {
+        try {
+            const conteudo = e.target.result;
+            const dados = JSON.parse(conteudo);
+
+            if (!dados || typeof dados !== 'object') {
+                alert("O arquivo selecionado não contém um formato JSON válido.");
+                return;
+            }
+
+            if (confirm("Tem certeza que deseja importar estes dados? Isso substituirá as informações atuais do sistema.")) {
+                if (Array.isArray(dados.moradores)) {
+                    moradores = dados.moradores;
+                    localStorage.setItem('lista_condominio', JSON.stringify(moradores));
+                }
+                if (Array.isArray(dados.notas)) {
+                    notas = dados.notas;
+                    localStorage.setItem('lista_notas', JSON.stringify(notas));
+                }
+                if (Array.isArray(dados.reservas)) {
+                    reservas = dados.reservas;
+                    localStorage.setItem('lista_reservas', JSON.stringify(reservas));
+                }
+                if (Array.isArray(dados.reservas_salao)) {
+                    reservas_salao = dados.reservas_salao;
+                    localStorage.setItem('lista_reservas_salao', JSON.stringify(reservas_salao));
+                }
+                if (Array.isArray(dados.encomendas)) {
+                    encomendas = dados.encomendas;
+                    localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
+                }
+                if (Array.isArray(dados.espacos)) {
+                    espacos = dados.espacos;
+                    localStorage.setItem('lista_espacos', JSON.stringify(espacos));
+                }
+
+                // Atualiza todas as telas do sistema
+                if (typeof renderizar === 'function') renderizar();
+                if (typeof renderizarNotas === 'function') renderizarNotas();
+                if (typeof renderizarEncomendas === 'function') renderizarEncomendas();
+                if (typeof renderizarHistorico === 'function') renderizarHistorico();
+                if (typeof renderizarEspacosSelect === 'function') renderizarEspacosSelect();
+                if (typeof renderizarEspacosGerencia === 'function') renderizarEspacosGerencia();
+                if (typeof renderizarReservas === 'function') renderizarReservas();
+                if (typeof renderizarEspacos === 'function') renderizarEspacos();
+                if (typeof renderizarReservasSalao === 'function') renderizarReservasSalao();
+
+                // Sincroniza com a nuvem, se aplicável
+                if (typeof salvarNaNuvem === 'function') {
+                    salvarNaNuvem();
+                }
+
+                alert("Dados importados com sucesso!");
+            }
+        } catch (erro) {
+            console.error("Erro ao ler o arquivo:", erro);
+            alert("Erro ao processar o arquivo JSON. Verifique se o formato está correto.");
+        } finally {
+            // Limpa o input de arquivo para permitir selecionar o mesmo arquivo novamente se necessário
+            event.target.value = '';
+        }
+    };
+
+    leitor.readAsText(arquivo);
+}
     const dadosStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosCompletos, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute("href", dadosStr);
