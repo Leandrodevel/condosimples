@@ -303,7 +303,7 @@ function importarDados(event) {
 
                 // Sincroniza com a nuvem, se aplicável
                 if (typeof salvarNaNuvem === 'function') {
-                    salvarNaNuvem();
+                  //  salvarNaNuvem();
                 }
 
                 alert("Dados importados com sucesso!");
