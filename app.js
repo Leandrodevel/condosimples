@@ -240,7 +240,7 @@ async function carregarDaNuvem() {
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-       function exportarDados() {
+  function exportarDados() {
     const dadosCompletos = {
         moradores: typeof moradores !== 'undefined' ? moradores : [],
         notas: typeof notas !== 'undefined' ? notas : [],
@@ -249,6 +249,15 @@ async function carregarDaNuvem() {
         encomendas: typeof encomendas !== 'undefined' ? encomendas : [],
         espacos: typeof espacos !== 'undefined' ? espacos : []
     };
+
+    const dadosStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosCompletos, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dadosStr);
+    downloadAnchor.setAttribute("download", "backup_sistema_condominio.json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+}
 function importarDados(event) {
     const arquivo = event.target.files[0];
     if (!arquivo) return;
@@ -318,14 +327,6 @@ function importarDados(event) {
     };
 
     leitor.readAsText(arquivo);
-}
-    const dadosStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosCompletos, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dadosStr);
-    downloadAnchor.setAttribute("download", "backup_sistema_condominio.json");
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
 }
 // Suas credenciais do JSONBin
 
