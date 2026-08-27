@@ -160,8 +160,8 @@
             </div>
 
             <div>
-                <label class="text-xs font-semibold text-gray-600">Nome do Condômino</label>
-                <input type="text" id="salaoCondômino" required placeholder="Ex: Carlos Silva" class="w-full p-3 border rounded-lg text-sm mt-1">
+                <label class="text-xs font-semibold text-gray-600">Nome do Morador</label>
+                <input type="text" id="salaoMorador" required placeholder="Ex: Carlos Silva" class="w-full p-3 border rounded-lg text-sm mt-1">
             </div>
 
             <div>
@@ -202,12 +202,12 @@
 
         <!-- Conteúdo: Cadastro -->
         <div id="abaCadastro" class="tab-content hidden">
-            <h2 class="text-lg font-bold text-green-800 mb-3 flex items-center gap-2"><i data-lucide="user-plus"></i> Novo Condômino</h2>
+            <h2 class="text-lg font-bold text-green-800 mb-3 flex items-center gap-2"><i data-lucide="user-plus"></i> Novo Morador</h2>
             <form id="formCadastro" class="bg-white p-6 rounded-xl shadow-sm border border-green-100 flex flex-col gap-3">
                 <input type="text" id="numeroCasa" placeholder="Número da Casa" required class="w-full p-3 border rounded-lg">
-                <input type="text" id="nomeCondômino" placeholder="Nome do Condômino" required class="w-full p-3 border rounded-lg">
-                <input type="tel" id="telefoneCondômino" placeholder="Telefone" class="w-full p-3 border rounded-lg">
-                <button type="submit" class="bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition-colors">Salvar Condômino</button>
+                <input type="text" id="nomeMorador" placeholder="Nome do Morador" required class="w-full p-3 border rounded-lg">
+                <input type="tel" id="telefoneMorador" placeholder="Telefone" class="w-full p-3 border rounded-lg">
+                <button type="submit" class="bg-green-600 text-white p-3 rounded-lg font-bold hover:bg-green-700 transition-colors">Salvar Morador</button>
             </form>
         </div>
 
@@ -222,7 +222,7 @@
                     <i data-lucide="grid" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div id="listaCondôminoes" class="bg-white rounded-xl shadow-sm border border-green-100 divide-y"></div>
+            <div id="listaMoradores" class="bg-white rounded-xl shadow-sm border border-green-100 divide-y"></div>
         </div>
 
         <!-- Conteúdo: Encomendas Pendentes -->
@@ -329,7 +329,7 @@
                 <input type="time" id="reservaHora" required class="w-full p-3 border rounded-lg text-sm">
             </div>
 
-            <input type="text" id="reservaLote" placeholder="Unidade" required class="w-full p-3 border rounded-lg text-sm">
+            <input type="text" id="reservaLote" placeholder="Lote / Casa" required class="w-full p-3 border rounded-lg text-sm">
             
             <button type="submit" class="bg-green-600 text-white p-3 rounded-lg font-bold text-sm hover:bg-green-700 transition-colors">
                 Salvar Reserva
@@ -378,7 +378,7 @@
     <div id="modalEdicao" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
         <div class="bg-white w-full max-w-md rounded-2xl p-6 shadow-xl relative">
             <button onclick="fecharModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600"><i data-lucide="x"></i></button>
-            <h2 class="text-xl font-bold text-gray-800 mb-4">Editar Condômino</h2>
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Editar Morador</h2>
             <form id="formEditar" class="flex flex-col gap-3">
                 <input type="hidden" id="editId">
                 <input type="text" id="editCasa" placeholder="Casa" required class="w-full p-3 border rounded-lg">
@@ -418,7 +418,7 @@
         </button>
     </div>
 
-    <!-- Select de Condôminoes (Substituiu o input de texto do destinatário) -->
+    <!-- Select de Moradores (Substituiu o input de texto do destinatário) -->
     <div id="containerDestinatario">
         <select id="encomendaDestinatario" required class="w-full p-3 border rounded-lg bg-white cursor-pointer" disabled>
             <option value="">Selecione a casa primeiro...</option>
