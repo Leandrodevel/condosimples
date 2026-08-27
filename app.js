@@ -154,7 +154,96 @@ async function carregarDaNuvem() {
     }
 }
 
+function verificarEncomendasAntigas() {
+    let encomendas = JSON.parse(localStorage.getItem('lista_encomendas')) || [];
+    if (encomendas.length === 0) return;
 
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+
+    const CINCO_DIAS_MS = 5 * 24 * 60 * 60 * 1000;
+    let encomendasParaRemover = [];
+    let encomendasMantidas = [];
+
+    encomendas.forEach(enc => {
+        const dataEncStr = enc.data || enc.dataEntrega;
+        if (!dataEncStr) {
+            encomendasMantidas.push(enc);
+            return;
+        }
+
+        const dataEnc = new Date(dataEncStr + 'T00:00:00');
+        const diferencaTempo = hoje - dataEnc;
+
+        if (diferencaTempo > CINCO_DIAS_MS) {
+            encomendasParaRemover.push(enc);
+        } else {
+            encomendasMantidas.push(enc);
+        }
+    });
+
+    if (encomendasParaRemover.length > 0) {
+        mostrarModalExclusaoEncomendas(encomendasParaRemover, encomendasMantidas);
+    }
+}
+
+function mostrarModalExclusaoEncomendas(removidas, mantidas) {
+    const modalAntigo = document.getElementById('modalAvisoEncomendas');
+    if (modalAntigo) modalAntigo.remove();
+
+    const modalHTML = `
+        <div id="modalAvisoEncomendas" class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+            <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl max-w-md w-full flex flex-col gap-4 border border-gray-100 dark:border-slate-700">
+                <div class="flex items-center gap-3">
+                    <div class="p-3 bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 rounded-xl">
+                        <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-gray-800 dark:text-gray-100 text-base">Limpeza Automática de Encomendas</h3>
+                        <p class="text-xs text-gray-500 dark:text-gray-400">Foram encontradas ${removidas.length} encomenda(s) com mais de 5 dias.</p>
+                    </div>
+                </div>
+                
+                <p class="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                    Encomendas entregues há mais de 5 dias serão removidas automaticamente para manter o sistema limpo. Você pode fazer um backup geral antes de prosseguir.
+                </p>
+
+                <div class="flex flex-col gap-2 mt-2">
+                    <button onclick='exportarDados()' class="w-full py-2.5 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold text-xs hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors flex items-center justify-center gap-2">
+                        <i data-lucide="download" class="w-4 h-4"></i> Exportar Dados Gerais (Backup)
+                    </button>
+                    
+                    <button onclick='confirmarLimpezaEncomendas(${JSON.stringify(mantidas)})' class="w-full py-3 bg-green-600 text-white rounded-xl font-bold text-sm hover:bg-green-700 transition-colors shadow-md">
+                        Entendido e Continuar
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function confirmarLimpezaEncomendas(encomendasMantidas) {
+    localStorage.setItem('lista_encomendas', JSON.stringify(encomendasMantidas));
+    encomendas = encomendasMantidas;
+
+    const modal = document.getElementById('modalAvisoEncomendas');
+    if (modal) modal.remove();
+
+    if (typeof renderizarEncomendas === 'function') {
+        renderizarEncomendas();
+    }
+    
+    if (typeof salvarNaNuvem === 'function') {
+        salvarNaNuvem();
+    }
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(verificarEncomendasAntigas, 500);
+});
 
         function toggleMenu() {
             const sidebar = document.getElementById('sidebar');
