@@ -415,10 +415,20 @@ function renderizarEspacos() {
     }
 
     espacos.forEach(espaco => {
-        const totalReservas = reservas.filter(r => r.area.toLowerCase() === espaco.toLowerCase()).length;
+        let totalReservas = reservas.filter(r => r.area.toLowerCase() === espaco.toLowerCase()).length;
+        if (espaco.toLowerCase() === 'salão de festas' || espaco.toLowerCase() === 'salao de festas') {
+            totalReservas += (typeof reservas_salao !== 'undefined' ? reservas_salao.length : 0);
+        }
+
+        const temReservas = totalReservas > 0;
+        
+        // Mantém o estilo original do card, alterando apenas a borda se houver reservas
+        const classeBorda = temReservas 
+            ? 'bg-white p-5 rounded-xl shadow-sm border-2 border-green-500 transition-all flex flex-col justify-between gap-4 relative group' 
+            : 'bg-white p-5 rounded-xl shadow-sm border border-green-100 hover:border-green-400 transition-all flex flex-col justify-between gap-4 relative group';
 
         grid.innerHTML += `
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-green-100 hover:border-green-400 transition-all flex flex-col justify-between gap-4 relative group">
+            <div class="${classeBorda}">
                 <div onclick="abrirDetalhesEspaco('${espaco}')" class="cursor-pointer">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center gap-3">
