@@ -500,9 +500,25 @@ function voltarParaEspacos() {
 function renderizarReservasDoEspaco(nomeEspaco) {
     const container = document.getElementById('listaReservasEspaco');
     if (!container) return;
+    
+    // Remove os botões antigos de filtro para recriá-corretamente vinculados ao espaço atual
+    const filtroAntigo = document.getElementById('filtroReservasContainer');
+    if (filtroAntigo) filtroAntigo.remove();
+
     container.innerHTML = '';
 
     const reservasFiltradas = reservas.filter(r => r.area.toLowerCase() === nomeEspaco.toLowerCase());
+
+    // Injeta os botões de filtro no topo da lista
+    let filtroContainer = document.createElement('div');
+    filtroContainer.id = 'filtroReservasContainer';
+    filtroContainer.className = 'flex gap-2 mb-3';
+    filtroContainer.innerHTML = `
+        <button onclick="mudarFiltroReserva('${nomeEspaco}', 'todos')" id="btnFiltro-todos" class="px-3 py-1 text-xs font-semibold rounded-lg bg-green-600 text-white transition-colors">Todas</button>
+        <button onclick="mudarFiltroReserva('${nomeEspaco}', 'hoje')" id="btnFiltro-hoje" class="px-3 py-1 text-xs font-semibold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">Hoje</button>
+        <button onclick="mudarFiltroReserva('${nomeEspaco}', 'mes')" id="btnFiltro-mes" class="px-3 py-1 text-xs font-semibold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">Este Mês</button>
+    `;
+    container.parentNode.insertBefore(filtroContainer, container);
 
     if (reservasFiltradas.length === 0) {
         container.innerHTML = `<p class="text-sm text-gray-400 py-3">Nenhuma reserva encontrada para este espaço.</p>`;
@@ -515,20 +531,6 @@ function renderizarReservasDoEspaco(nomeEspaco) {
         const dataB = new Date(`${b.data}T${b.horario || '00:00'}`);
         return dataA - dataB;
     });
-
-    // Injeta os botões de filtro no topo da lista se já não existirem
-    let filtroContainer = document.getElementById('filtroReservasContainer');
-    if (!filtroContainer) {
-        filtroContainer = document.createElement('div');
-        filtroContainer.id = 'filtroReservasContainer';
-        filtroContainer.className = 'flex gap-2 mb-3';
-        filtroContainer.innerHTML = `
-            <button onclick="mudarFiltroReserva('${nomeEspaco}', 'todos')" id="btnFiltro-todos" class="px-3 py-1 text-xs font-semibold rounded-lg bg-green-600 text-white transition-colors">Todas</button>
-            <button onclick="mudarFiltroReserva('${nomeEspaco}', 'hoje')" id="btnFiltro-hoje" class="px-3 py-1 text-xs font-semibold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">Hoje</button>
-            <button onclick="mudarFiltroReserva('${nomeEspaco}', 'mes')" id="btnFiltro-mes" class="px-3 py-1 text-xs font-semibold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">Este Mês</button>
-        `;
-        container.parentNode.insertBefore(filtroContainer, container);
-    }
 
     // Recupera o filtro atual (padrão 'todos')
     const filtroAtual = window.filtroReservaAtivo || 'todos';
