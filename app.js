@@ -834,45 +834,21 @@ function excluirEncomenda(id) {
 }
 
 
-        function renderizarHistorico() {
-            const lista = document.getElementById('listaHistorico');
-            if(!lista) return;
+        <div class="flex items-center gap-2 mb-4">
+    <!-- Seu campo de busca existente -->
+    <input type="text" id="buscaHistorico" oninput="renderizarHistorico()" placeholder="Pesquisar histórico..." class="border rounded px-3 py-2 flex-1">
+    
+    <!-- Botão Hoje -->
+    <button onclick="definirFiltroHistorico('hoje')" class="bg-green-700 text-white px-3 py-2 rounded text-sm font-medium hover:bg-green-800 transition-colors">
+        Hoje
+    </button>
+    
+    <!-- Botão Todos -->
+    <button onclick="definirFiltroHistorico('todos')" class="bg-gray-200 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-300 transition-colors">
+        Todos
+    </button>
+</div>
 
-            const termo = document.getElementById('buscaHistorico')?.value.toLowerCase() || '';
-            const entregues = encomendas.filter(enc => enc.retiradoPor != null && (
-                enc.casa.toLowerCase().includes(termo) || 
-                enc.destinatario.toLowerCase().includes(termo) || 
-                enc.idPacote.toLowerCase().includes(termo) ||
-                enc.retiradoPor.toLowerCase().includes(termo)
-            ));
-
-            if (entregues.length === 0) {
-                lista.innerHTML = `<div class="p-4 text-center text-gray-400 italic">Nenhum histórico encontrado.</div>`;
-                return;
-            }
-
-            let html = '';
-            entregues.forEach(enc => {
-                html += `
-                    <div class="p-4 flex justify-between items-center group bg-gray-50 opacity-90">
-                        <div>
-                            <span class="text-[10px] text-gray-400 font-bold uppercase">Casa / Lote</span>
-                            <span class="text-xl text-green-700 font-bold uppercase block">${enc.casa}</span>
-                            <p class="font-bold text-gray-800 text-md mt-1">Destinatário: ${enc.destinatario}</p>
-                            <p class="text-sm text-gray-600">Pacote / ID: <span class="font-mono bg-gray-100 px-1 rounded">${enc.idPacote}</span></p>
-                            <p class="text-xs text-gray-400 mt-1"><i data-lucide="clock" class="w-3 h-3 inline mr-1"></i>Chegada: ${enc.dataChegada}</p>
-                            <p class="text-xs text-green-700 font-bold mt-1"><i data-lucide="check-circle" class="w-3 h-3 inline mr-1"></i>Retirado por ${enc.retiradoPor} em ${enc.dataRetirada}</p>
-                        </div>
-                        <div>
-                            <button onclick="excluirEncomenda(${enc.id})" class="text-gray-400 hover:text-red-600 text-xs transition-colors p-1" title="Excluir Registro (Exige Senha)">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>`;
-            });
-            lista.innerHTML = html;
-            lucide.createIcons();
-        }
 
 // --- Notas ---
 document.getElementById('formNotas').addEventListener('submit', (e) => {
