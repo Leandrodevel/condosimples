@@ -240,24 +240,24 @@ async function carregarDaNuvem() {
     if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-        function exportarDados() {
-            const dadosCompletos = {
-                moradores: moradores,
-                notas: notas,
-                reservas: reservas,
-                encomendas: encomendas,
-                espacos: espacos
-            };
-        
-            const dadosStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosCompletos, null, 2));
-            const downloadAnchor = document.createElement('a');
-            downloadAnchor.setAttribute("href", dadosStr);
-            downloadAnchor.setAttribute("download", "backup_sistema_condominio.json");
-            document.body.appendChild(downloadAnchor);
-            downloadAnchor.click();
-            downloadAnchor.remove();
-        }
+       function exportarDados() {
+    const dadosCompletos = {
+        moradores: typeof moradores !== 'undefined' ? moradores : [],
+        notas: typeof notas !== 'undefined' ? notas : [],
+        reservas: typeof reservas !== 'undefined' ? reservas : [],
+        reservas_salao: typeof reservas_salao !== 'undefined' ? reservas_salao : [],
+        encomendas: typeof encomendas !== 'undefined' ? encomendas : [],
+        espacos: typeof espacos !== 'undefined' ? espacos : []
+    };
 
+    const dadosStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dadosCompletos, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dadosStr);
+    downloadAnchor.setAttribute("download", "backup_sistema_condominio.json");
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+}
 // Suas credenciais do JSONBin
 
 
