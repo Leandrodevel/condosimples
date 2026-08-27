@@ -188,9 +188,21 @@
         <div id="abaHistoricoEncomendas" class="tab-content hidden">
             <h2 class="text-lg font-bold text-green-800 mb-3 flex items-center gap-2"><i data-lucide="history"></i> Histórico de Encomendas Entregues</h2>
             
-            <div class="mb-4">
-                <input type="text" id="buscaHistorico" oninput="renderizarHistorico()" placeholder="Buscar no histórico (casa, destinatário ou retirante)..." class="w-full p-3 border rounded-lg bg-white shadow-sm">
-            </div>
+            <div class="flex items-center gap-2 mb-4">
+    <!-- Seu campo de busca existente -->
+    <input type="text" id="buscaHistorico" oninput="renderizarHistorico()" placeholder="Pesquisar histórico..." class="border rounded px-3 py-2 flex-1">
+    
+    <!-- Botão Hoje -->
+    <button onclick="definirFiltroHistorico('hoje')" class="bg-green-700 text-white px-3 py-2 rounded text-sm font-medium hover:bg-green-800 transition-colors">
+        Hoje
+    </button>
+    
+    <!-- Botão Todos -->
+    <button onclick="definirFiltroHistorico('todos')" class="bg-gray-200 text-gray-700 px-3 py-2 rounded text-sm font-medium hover:bg-gray-300 transition-colors">
+        Todos
+    </button>
+</div>
+
 
             <div id="listaHistorico" class="bg-white rounded-xl shadow-sm border border-green-100 divide-y"></div>
         </div>
