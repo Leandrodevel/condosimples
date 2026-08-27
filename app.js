@@ -1,11 +1,11 @@
 // Senha padrão de acesso ao sistema
-const SENHA_SISTEMA = "207730";
+const admin_pass = "207730";
 
 function fazerLogin() {
     const inputSenha = document.getElementById('senhaLogin').value;
     const telaLogin = document.getElementById('telaLogin');
 
-    if (inputSenha === SENHA_SISTEMA) {
+    if (inputSenha === admin_pass) {
         // Oculta a tela de login
         telaLogin.classList.add('hidden');
         
@@ -31,14 +31,13 @@ window.addEventListener('DOMContentLoaded', () => {
         const BIN_ID = '6a8ca917da38895dfe0c130b';
         const MASTER_KEY = '$2a$10$dQGLRurlOEnFFy4JdgxjxOLObuCSsZflIg.lBeAR.nzdcGdOHgIjq';
         
-        // Suas credenciais do JSONBin (já configuradas)
-async function salvarNaNuvem() {
+ async function salvarNaNuvem() {
     try {
-        // Monta o objeto completo de backup com todas as suas listas atuais
         const dadosCompletos = {
             moradores: typeof moradores !== 'undefined' ? moradores : [],
             notas: typeof notas !== 'undefined' ? notas : [],
             reservas: typeof reservas !== 'undefined' ? reservas : [],
+            reservas_salao: typeof reservas_salao !== 'undefined' ? reservas_salao : [],
             encomendas: typeof encomendas !== 'undefined' ? encomendas : [],
             espacos: typeof espacos !== 'undefined' ? espacos : []
         };
@@ -58,9 +57,6 @@ async function salvarNaNuvem() {
 
         const resultado = await resposta.json();
         console.log("Dados salvos e sincronizados com sucesso na nuvem!", resultado);
-        
-        // Opcional: um aviso sutil ou alerta na tela
-       // alert("Alterações salvas na nuvem com sucesso!");
 
     } catch (error) {
         console.error("Erro:", error);
@@ -70,13 +66,85 @@ async function salvarNaNuvem() {
 
         // 1. CARREGAR OS DADOS (Use quando a página abrir)
         
-        let moradores = JSON.parse(localStorage.getItem('lista_condominio')) || [];
-        let notas = JSON.parse(localStorage.getItem('lista_notas')) || [];
-        let reservas = JSON.parse(localStorage.getItem('lista_reservas')) || [];
-        let encomendas = JSON.parse(localStorage.getItem('lista_encomendas')) || [];
-        let espacos = JSON.parse(localStorage.getItem('lista_espacos')) || ['Salão de Festas'];
-        let contextoModalCasa = 'busca';
-        
+       let moradores = JSON.parse(localStorage.getItem('lista_condominio')) || [];
+let notas = JSON.parse(localStorage.getItem('lista_notas')) || [];
+let reservas = JSON.parse(localStorage.getItem('lista_reservas')) || [];
+let reservas_salao = JSON.parse(localStorage.getItem('lista_reservas_salao')) || [];
+limparReservasAntigas();
+let encomendas = JSON.parse(localStorage.getItem('lista_encomendas')) || [];
+let espacos = JSON.parse(localStorage.getItem('lista_espacos')) || ['Salão de Festas'];
+let contextoModalCasa = 'busca';
+
+async function carregarDaNuvem() {
+    try {
+        console.log("Baixando dados da nuvem...");
+
+        const resposta = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+            headers: {
+                'X-Master-Key': MASTER_KEY
+            }
+        });
+
+        if (!resposta.ok) throw new Error('Erro ao carregar da nuvem');
+
+        const resultado = await resposta.json();
+        const dados = resultado.record;
+
+        if (Array.isArray(dados)) {
+            moradores = dados;
+            localStorage.setItem('lista_condominio', JSON.stringify(moradores));
+            renderizar();
+            return;
+        }
+
+        if (dados && typeof dados === 'object') {
+            if (Array.isArray(dados.moradores)) {
+                moradores = dados.moradores;
+                localStorage.setItem('lista_condominio', JSON.stringify(moradores));
+            }
+            if (Array.isArray(dados.notas)) {
+                notas = dados.notas;
+                localStorage.setItem('lista_notas', JSON.stringify(notas));
+            }
+            if (Array.isArray(dados.reservas)) {
+                reservas = dados.reservas;
+                limparReservasAntigas();
+                localStorage.setItem('lista_reservas', JSON.stringify(reservas));
+            }
+            if (Array.isArray(dados.reservas_salao)) {
+                reservas_salao = dados.reservas_salao;
+                localStorage.setItem('lista_reservas_salao', JSON.stringify(reservas_salao));
+            }
+            if (Array.isArray(dados.encomendas)) {
+                encomendas = dados.encomendas;
+                localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
+            }
+            if (Array.isArray(dados.espacos)) {
+                espacos = dados.espacos;
+                localStorage.setItem('lista_espacos', JSON.stringify(espacos));
+            }
+
+            if (typeof renderizar === 'function') renderizar();
+            if (typeof renderizarNotas === 'function') renderizarNotas();
+            if (typeof renderizarEncomendas === 'function') renderizarEncomendas();
+            if (typeof renderizarHistorico === 'function') renderizarHistorico();
+            if (typeof renderizarEspacosSelect === 'function') renderizarEspacosSelect();
+            if (typeof renderizarEspacosGerencia === 'function') renderizarEspacosGerencia();
+            if (typeof renderizarReservas === 'function') renderizarReservas();
+            if (typeof renderizarEspacos === 'function') renderizarEspacos();
+            if (typeof renderizarReservasSalao === 'function') renderizarReservasSalao();
+
+            console.log("Dados sincronizados com sucesso!");
+        } else {
+            alert("Os dados da nuvem não têm o formato esperado.");
+        }
+
+    } catch (error) {
+        console.error("Erro:", error);
+        alert("Erro ao conectar com a nuvem para carregar os dados.");
+    }
+}
+
 
 
         function toggleMenu() {
@@ -116,35 +184,52 @@ async function salvarNaNuvem() {
             event?.currentTarget?.classList?.add('bg-green-50', 'text-green-700', 'font-bold');
 
           // toggleMenu();
-            renderizar(); renderizarNotas(); renderizarEncomendas(); renderizarHistorico(); renderizarEspacosSelect(); renderizarEspacosGerencia(); renderizarReservas();
+            renderizar(); renderizarNotas(); renderizarEncomendas(); renderizarHistorico(); renderizarEspacosSelect(); renderizarEspacosGerencia(); 
             lucide.createIcons();
         }
-        function mudarAba(aba) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById('aba' + aba.charAt(0).toUpperCase() + aba.slice(1)).classList.remove('hidden');
-            
-            const nomesAbas = { 
-                'busca': 'Buscar', 
-                'cadastro': 'Cadastrar', 
-                'encomendas': 'Pendentes', 
-                'historicoEncomendas': 'Histórico',
-                'reservas': 'Reservas', 
-                'espacos': 'Espaços',
-                'notas': 'Anotações' 
-            };
-            document.getElementById('tituloAbaAtual').innerText = nomesAbas[aba] || '';
+       function mudarAba(aba) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    
+    // Tratamento especial para o ID da aba do Salão de Festas (abaSalaoFestas vs abaSalaofestas)
+    let idElemento = 'aba' + aba.charAt(0).toUpperCase() + aba.slice(1);
+    if (aba === 'salaoFestas') idElemento = 'abaSalaoFestas';
+    
+    const elementoAba = document.getElementById(idElemento);
+    if (elementoAba) elementoAba.classList.remove('hidden');
+    
+    const nomesAbas = { 
+        'busca': 'Buscar', 
+        'cadastro': 'Cadastrar', 
+        'encomendas': 'Pendentes', 
+        'historicoEncomendas': 'Histórico',
+        'reservas': 'Reservas', 
+        'espacos': 'Espaços',
+        'salaoFestas': 'Salão de Festas',
+        'notas': 'Anotações' 
+    };
+    
+    const tituloEl = document.getElementById('tituloAbaAtual');
+    if (tituloEl) tituloEl.innerText = nomesAbas[aba] || '';
 
-            document.querySelectorAll('.menu-btn').forEach(btn => {
-                btn.classList.remove('bg-green-50', 'text-green-700', 'font-bold');
-                btn.classList.add('font-medium', 'text-gray-600');
-            });
-            event?.currentTarget?.classList?.remove('font-medium', 'text-gray-600');
-            event?.currentTarget?.classList?.add('bg-green-50', 'text-green-700', 'font-bold');
+    document.querySelectorAll('.menu-btn').forEach(btn => {
+        btn.classList.remove('bg-green-50', 'text-green-700', 'font-bold');
+        btn.classList.add('font-medium', 'text-gray-600');
+    });
+    event?.currentTarget?.classList?.remove('font-medium', 'text-gray-600');
+    event?.currentTarget?.classList?.add('bg-green-50', 'text-green-700', 'font-bold');
 
-            toggleMenu();
-            renderizar(); renderizarNotas(); renderizarEncomendas(); renderizarHistorico(); renderizarEspacosSelect(); renderizarEspacosGerencia(); renderizarReservas();
-            lucide.createIcons();
-        }
+    toggleMenu();
+    
+    // Executa as funções de renderização disponíveis no sistema
+    if (typeof renderizar === 'function') renderizar();
+    if (typeof renderizarNotas === 'function') renderizarNotas();
+    if (typeof renderizarEncomendas === 'function') renderizarEncomendas();
+    if (typeof renderizarHistorico === 'function') renderizarHistorico();
+    if (typeof renderizarEspacos === 'function') renderizarEspacos();
+    if (typeof renderizarReservasSalao === 'function') renderizarReservasSalao();
+    
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
 
         function exportarDados() {
             const dadosCompletos = {
@@ -165,74 +250,6 @@ async function salvarNaNuvem() {
         }
 
 // Suas credenciais do JSONBin
-
-async function carregarDaNuvem() {
-    try {
-        // Mostra um aviso opcional de carregando (se quiser)
-        console.log("Baixando dados da nuvem...");
-
-        const resposta = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
-            headers: {
-                'X-Master-Key': MASTER_KEY
-            }
-        });
-
-        if (!resposta.ok) throw new Error('Erro ao carregar da nuvem');
-
-        const resultado = await resposta.json();
-        const dados = resultado.record; // Aqui está o objeto JSON vindo do JSONBin
-
-        // Compatibilidade com arquivos antigos (apenas array de moradores)
-        if (Array.isArray(dados)) {
-            moradores = dados;
-            localStorage.setItem('lista_condominio', JSON.stringify(moradores));
-            renderizar();
-           // alert("Moradores carregados da nuvem com sucesso!");
-            return;
-        }
-
-        // Novo formato completo de backup (igualzinho ao seu código original)
-        if (dados && typeof dados === 'object') {
-            if (Array.isArray(dados.moradores)) {
-                moradores = dados.moradores;
-                localStorage.setItem('lista_condominio', JSON.stringify(moradores));
-            }
-            if (Array.isArray(dados.notas)) {
-                notas = dados.notas;
-                localStorage.setItem('lista_notas', JSON.stringify(notas));
-            }
-            if (Array.isArray(dados.reservas)) {
-                reservas = dados.reservas;
-                localStorage.setItem('lista_reservas', JSON.stringify(reservas));
-            }
-            if (Array.isArray(dados.encomendas)) {
-                encomendas = dados.encomendas;
-                localStorage.setItem('lista_encomendas', JSON.stringify(encomendas));
-            }
-            if (Array.isArray(dados.espacos)) {
-                espacos = dados.espacos;
-                localStorage.setItem('lista_espacos', JSON.stringify(espacos));
-            }
-
-            // Atualiza todas as telas do seu sistema de condomínio
-            if (typeof renderizar === 'function') renderizar();
-            if (typeof renderizarNotas === 'function') renderizarNotas();
-            if (typeof renderizarEncomendas === 'function') renderizarEncomendas();
-            if (typeof renderizarHistorico === 'function') renderizarHistorico();
-            if (typeof renderizarEspacosSelect === 'function') renderizarEspacosSelect();
-            if (typeof renderizarEspacosGerencia === 'function') renderizarEspacosGerencia();
-            if (typeof renderizarReservas === 'function') renderizarReservas();
-
-            console.log("Dados sincronizados com sucesso!");
-        } else {
-            alert("Os dados da nuvem não têm o formato esperado.");
-        }
-
-    } catch (error) {
-        console.error("Erro:", error);
-        alert("Erro ao conectar com a nuvem para carregar os dados.");
-    }
-}
 
 
         function abrirModal(id) {
@@ -368,7 +385,7 @@ selectDestinatario.disabled = true; // Trava o select novamente até escolher um
     localStorage.setItem('lista_espacos', JSON.stringify(espacos));
     
     // Atualiza a interface
-    renderizarEspacosSelect();
+   
     renderizarEspacosGerencia();
     fecharModalNovoEspaco();
 
@@ -376,69 +393,283 @@ selectDestinatario.disabled = true; // Trava o select novamente até escolher um
     salvarNaNuvem();
 });
 
-        function excluirEspaco(nome) {
-    const senhaInformada = prompt("Digite a senha para excluir este espaço:");
-    if (senhaInformada === "@granja123") {
-        // 1. Filtra o array removendo o espaço
-        espacos = espacos.filter(esp => esp !== nome);
-        
-        // 2. Salva localmente
-        localStorage.setItem('lista_espacos', JSON.stringify(espacos));
-        
-        // 3. Atualiza as telas do sistema
-        renderizarEspacosSelect();
-        renderizarEspacosGerencia();
-        
-        // 4. Envia o estado atualizado direto para a nuvem (JSONBin)
-        salvarNaNuvem();
+// === FUNÇÕES DE GESTÃO DE ESPAÇOS E RESERVAS (Integrado ao app.js) ===
 
-        alert("Espaço excluído com sucesso e sincronizado na nuvem!");
-    } else if (senhaInformada !== null) {
-        alert("Senha incorreta! A exclusão foi cancelada.");
+function renderizarEspacos() {
+    const grid = document.getElementById('gridEspacos');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    if (!espacos || espacos.length === 0) {
+        grid.innerHTML = `<p class="text-sm text-gray-400 col-span-full">Nenhum espaço cadastrado.</p>`;
+        return;
     }
+
+    espacos.forEach(espaco => {
+        const totalReservas = reservas.filter(r => r.area.toLowerCase() === espaco.toLowerCase()).length;
+
+        grid.innerHTML += `
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-green-100 hover:border-green-400 transition-all flex flex-col justify-between gap-4 relative group">
+                <div onclick="abrirDetalhesEspaco('${espaco}')" class="cursor-pointer">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <div class="p-3 bg-green-50 text-green-600 rounded-lg">
+                                <i data-lucide="map-pin" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-800">${espaco}</h4>
+                                <span class="text-xs text-gray-500">${totalReservas} reserva(s) cadastrada(s)</span>
+                            </div>
+                        </div>
+                        <button onclick="event.stopPropagation(); excluirEspaco('${espaco}')" class="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Excluir Espaço">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+                <div onclick="abrirDetalhesEspaco('${espaco}')" class="text-xs font-semibold text-green-600 flex items-center gap-1 cursor-pointer pt-2 border-t border-gray-50">
+                    Gerenciar reservas <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                </div>
+            </div>
+        `;
+    });
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
+function excluirEspaco(nomeEspaco) {
+    const senhaDigitada = prompt("Digite a senha de administrador para apagar este espaço:");
+    
+    if (senhaDigitada === null) return; // Cancelado pelo usuário
 
-        function renderizarEspacosSelect() {
-            const select = document.getElementById('reservaArea');
-            if(!select) return;
-            select.innerHTML = '<option value="">Selecione o Espaço...</option>';
-            espacos.forEach(espaco => { select.innerHTML += `<option value="${espaco}">${espaco}</option>`; });
-        }
+    if (senhaDigitada === admin_pass) {
+        // Remove o espaço do array
+        espacos = espacos.filter(e => e.toLowerCase() !== nomeEspaco.toLowerCase());
+        
+        // Opcional: Remove também as reservas associadas a este espaço apagado
+        reservas = reservas.filter(r => r.area.toLowerCase() !== nomeEspaco.toLowerCase());
+        
+        // Atualiza o localStorage
+        localStorage.setItem('lista_espacos', JSON.stringify(espacos));
+        localStorage.setItem('lista_reservas', JSON.stringify(reservas));
+        
+        // Se houver salvamento na nuvem, chame aqui:
+        // if (typeof salvarNaNuvem === 'function') salvarNaNuvem();
+        salvarNaNuvem(); // Sincroniza a exclusão com a nuvem
+        renderizarEspacos();
 
-        function renderizarEspacosGerencia() {
-            const lista = document.getElementById('listaEspacosGerencia');
-            if (!lista) return;
+        alert("Espaço excluído com sucesso!");
+    } else {
+        alert("Senha incorreta!");
+    }
+}
+function abrirDetalhesEspaco(nomeEspaco) {
+    document.getElementById('painelEspacos').classList.add('hidden');
+    document.getElementById('painelDetalhesEspaco').classList.remove('hidden');
+    
+    document.getElementById('tituloEspacoSelecionado').innerText = nomeEspaco;
+    document.getElementById('reservaArea').value = nomeEspaco;
 
-            if (espacos.length === 0) {
-                lista.innerHTML = `<div class="p-4 text-center text-gray-400 italic">Nenhum espaço cadastrado.</div>`;
-                return;
+    renderizarReservasDoEspaco(nomeEspaco);
+}
+
+function voltarParaEspacos() {
+    document.getElementById('painelDetalhesEspaco').classList.add('hidden');
+    document.getElementById('painelEspacos').classList.remove('hidden');
+    renderizarEspacos();
+}
+
+function renderizarReservasDoEspaco(nomeEspaco) {
+    const container = document.getElementById('listaReservasEspaco');
+    if (!container) return;
+    container.innerHTML = '';
+
+    const reservasFiltradas = reservas.filter(r => r.area.toLowerCase() === nomeEspaco.toLowerCase());
+
+    if (reservasFiltradas.length === 0) {
+        container.innerHTML = `<p class="text-sm text-gray-400 py-3">Nenhuma reserva encontrada para este espaço.</p>`;
+        return;
+    }
+
+    // Ordena da mais próxima para a mais distante (por data e horário)
+    reservasFiltradas.sort((a, b) => {
+        const dataA = new Date(`${a.data}T${a.horario || '00:00'}`);
+        const dataB = new Date(`${b.data}T${b.horario || '00:00'}`);
+        return dataA - dataB;
+    });
+
+    // Injeta os botões de filtro no topo da lista se já não existirem
+    let filtroContainer = document.getElementById('filtroReservasContainer');
+    if (!filtroContainer) {
+        filtroContainer = document.createElement('div');
+        filtroContainer.id = 'filtroReservasContainer';
+        filtroContainer.className = 'flex gap-2 mb-3';
+        filtroContainer.innerHTML = `
+            <button onclick="mudarFiltroReserva('${nomeEspaco}', 'todos')" id="btnFiltro-todos" class="px-3 py-1 text-xs font-semibold rounded-lg bg-green-600 text-white transition-colors">Todas</button>
+            <button onclick="mudarFiltroReserva('${nomeEspaco}', 'hoje')" id="btnFiltro-hoje" class="px-3 py-1 text-xs font-semibold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">Hoje</button>
+            <button onclick="mudarFiltroReserva('${nomeEspaco}', 'mes')" id="btnFiltro-mes" class="px-3 py-1 text-xs font-semibold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">Este Mês</button>
+        `;
+        container.parentNode.insertBefore(filtroContainer, container);
+    }
+
+    // Recupera o filtro atual (padrão 'todos')
+    const filtroAtual = window.filtroReservaAtivo || 'todos';
+    
+    // Atualiza o estilo visual dos botões
+    ['todos', 'hoje', 'mes'].forEach(f => {
+        const btn = document.getElementById(`btnFiltro-${f}`);
+        if (btn) {
+            if (f === filtroAtual) {
+                btn.className = "px-3 py-1 text-xs font-semibold rounded-lg bg-green-600 text-white transition-colors";
+            } else {
+                btn.className = "px-3 py-1 text-xs font-semibold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors";
             }
-
-            let html = '';
-            espacos.forEach(espaco => {
-                html += `
-                    <div class="p-4 flex justify-between items-center group bg-white">
-                        <span class="font-bold text-green-800 text-lg">${espaco}</span>
-                        <div class="flex gap-2">
-                            <button onclick="abrirModalNovoEspaco('${espaco}')" class="p-2 text-gray-400 hover:text-blue-600 transition-colors" title="Editar Espaço">
-                                <i data-lucide="pencil" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="excluirEspaco('${espaco}')" class="p-2 text-gray-400 hover:text-red-600 transition-colors" title="Excluir Espaço (Exige Senha)">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                    </div>`;
-            });
-            lista.innerHTML = html;
-            lucide.createIcons();
         }
+    });
+
+    const hojeStr = new Date().toISOString().split('T')[0];
+    const anoMesAtual = hojeStr.substring(0, 7); // "YYYY-MM"
+
+    // Aplica o filtro selecionado
+    const reservasProcessadas = reservasFiltradas.filter(reserva => {
+        if (filtroAtual === 'hoje') return reserva.data === hojeStr;
+        if (filtroAtual === 'mes') return reserva.data.startsWith(anoMesAtual);
+        return true;
+    });
+
+    if (reservasProcessadas.length === 0) {
+        container.innerHTML = `<p class="text-sm text-gray-400 py-3">Nenhuma reserva encontrada para este filtro.</p>`;
+        return;
+    }
+
+    // Separa as de hoje das demais para o separador visual
+    const reservasHoje = reservasProcessadas.filter(r => r.data === hojeStr);
+    const outrasReservas = reservasProcessadas.filter(r => r.data !== hojeStr);
+
+    let htmlFinal = '';
+
+    if (reservasHoje.length > 0 && filtroAtual === 'todos') {
+        htmlFinal += `<div class="text-xs font-bold text-green-700 uppercase tracking-wider py-2 bg-green-50 px-2 rounded-md mb-2">Reservas para Hoje</div>`;
+    }
+
+    const montarItemHtml = (reserva) => `
+        <div class="py-3 flex justify-between items-center text-sm border-b border-gray-100">
+            <div>
+                <p class="font-semibold text-gray-800">Lote/Casa: ${reserva.lote}</p>
+                <p class="text-xs text-gray-500">Data: ${reserva.data} às ${reserva.horario}</p>
+            </div>
+            <button onclick="excluirReserva(${reserva.id})" class="text-red-500 hover:text-red-700 text-xs font-medium">Excluir</button>
+        </div>
+    `;
+
+    reservasHoje.forEach(reserva => {
+        htmlFinal += montarItemHtml(reserva);
+    });
+
+    if (reservasHoje.length > 0 && outrasReservas.length > 0 && filtroAtual === 'todos') {
+        htmlFinal += `<div class="text-xs font-bold text-gray-500 uppercase tracking-wider py-2 bg-gray-50 px-2 rounded-md mt-4 mb-2">Próximas Reservas</div>`;
+    }
+
+    outrasReservas.forEach(reserva => {
+        htmlFinal += montarItemHtml(reserva);
+    });
+
+    container.innerHTML = htmlFinal;
+}
+
+function mudarFiltroReserva(nomeEspaco, tipoFiltro) {
+    window.filtroReservaAtivo = tipoFiltro;
+    renderizarReservasDoEspaco(nomeEspaco);
+}
+// Vinculado ao formulário de cadastro de reserva dentro dos detalhes do espaço
+document.addEventListener('submit', function(event) {
+    if (event.target && event.target.id === 'formReservas') {
+        event.preventDefault();
+        
+        const novaReserva = {
+            id: Date.now(),
+            area: document.getElementById('reservaArea').value,
+            data: document.getElementById('reservaData').value,
+            horario: document.getElementById('reservaHora').value,
+            lote: document.getElementById('reservaLote').value
+        };
+
+        reservas.push(novaReserva);
+        localStorage.setItem('lista_reservas', JSON.stringify(reservas));
+        
+        // Se você tiver uma função de salvamento na nuvem, chame aqui:
+        // if (typeof salvarNaNuvem === 'function') salvarNaNuvem();
+
+        event.target.reset();
+        document.getElementById('reservaArea').value = novaReserva.area; // Mantém a área selecionada
+        renderizarReservasDoEspaco(novaReserva.area);
+        renderizarEspacos();
+    }
+});
+
+function excluirReserva(idReserva) {
+    const areaAtual = document.getElementById('reservaArea').value;
+    reservas = reservas.filter(r => r.id !== idReserva);
+    
+    localStorage.setItem('lista_reservas', JSON.stringify(reservas));
+    // if (typeof salvarNaNuvem === 'function') salvarNaNuvem();
+
+    renderizarReservasDoEspaco(areaAtual);
+    renderizarEspacos();
+    salvarNaNuvem(); // Sincroniza a exclusão com a nuvem
+}
+function limparReservasAntigas() {
+    // Obtém a data atual no formato YYYY-MM-DD (compatível com a string salva no JSON)
+    const hoje = new Date().toISOString().split('T')[0];
+
+    // Filtra mantendo apenas as reservas cuja data seja hoje ou futura
+    const reservasAtualizadas = reservas.filter(reserva => reserva.data >= hoje);
+
+    // Se houve alguma remoção, atualiza o array global, o localStorage e o JSON
+    if (reservasAtualizadas.length !== reservas.length) {
+        reservas = reservasAtualizadas;
+        localStorage.setItem('lista_reservas', JSON.stringify(reservas));
+        
+        // Se você tiver a função de salvar na nuvem, pode descomentar a linha abaixo:
+        // if (typeof salvarNaNuvem === 'function') salvarNaNuvem();
+        
+        console.log("Reservas antigas removidas automaticamente.");
+    }
+}
+function abrirModalNovoEspaco() {
+    const modal = document.getElementById('modalNovoEspaco');
+    if (modal) modal.classList.remove('hidden');
+}
+
+function fecharModalNovoEspaco() {
+    const modal = document.getElementById('modalNovoEspaco');
+    if (modal) modal.classList.add('hidden');
+    const input = document.getElementById('nomeNovoEspaco');
+    if (input) input.value = '';
+}
+
+function adicionarNovoEspaco(event) {
+    event.preventDefault();
+    const input = document.getElementById('nomeNovoEspaco');
+    const novoNome = input ? input.value.trim() : '';
+
+    if (novoNome && !espacos.some(e => e.toLowerCase() === novoNome.toLowerCase())) {
+        espacos.push(novoNome);
+        
+        localStorage.setItem('lista_espacos', JSON.stringify(espacos));
+        // if (typeof salvarNaNuvem === 'function') salvarNaNuvem();
+
+        fecharModalNovoEspaco();
+        renderizarEspacos();
+    } else {
+        alert('Este espaço já existe ou o nome é inválido.');
+    }
+}
         // editar morador
         
 document.getElementById('formEditar').addEventListener('submit', (e) => {
     e.preventDefault();
     const senhaInformada = prompt("Digite a senha para salvar as alterações do morador:");
-    if (senhaInformada === "@granja123") {
+    if (senhaInformada === admin_pass) {
         const id = parseInt(document.getElementById('editId').value);
         moradores = moradores.map(m => m.id === id ? { 
             id, 
@@ -487,7 +718,7 @@ document.getElementById('formCadastro').addEventListener('submit', (e) => {
 
         function excluirMorador(id) {
     const senhaInformada = prompt("Digite a senha para excluir este morador:");
-    if (senhaInformada === "@granja123") {
+    if (senhaInformada === admin_pass) {
         // 1. Remove o morador da lista local
         moradores = moradores.filter(m => m.id !== id);
         
@@ -505,30 +736,7 @@ document.getElementById('formCadastro').addEventListener('submit', (e) => {
         alert("Senha incorreta! A exclusão foi cancelada.");
     }
 }
-function excluirReserva(id) {
-    const senhaInformada = prompt("Digite a senha para excluir esta reserva:");
-    if (senhaInformada === "@granja123") {
-        // 1. Remove a reserva da lista local
-        reservas = reservas.filter(r => r.id !== id);
-        
-        // 2. Salva localmente no localStorage
-        localStorage.setItem('lista_reservas', JSON.stringify(reservas));
-        
-        // 3. Atualiza a interface (certifique-se de chamar a função que renderiza as reservas)
-        if (typeof renderizarReservas === 'function') {
-            renderizarReservas();
-        }
-        
-        // 4. Sincroniza automaticamente com a nuvem (JSONBin)
-        if (typeof salvarNaNuvem === 'function') {
-            salvarNaNuvem();
-        }
 
-        alert("Reserva excluída com sucesso e sincronizada na nuvem!");
-    } else if (senhaInformada !== null) {
-        alert("Senha incorreta! A exclusão foi cancelada.");
-    }
-}
 
 // --- Encomendas ---
 document.addEventListener('submit', (e) => {
@@ -803,7 +1011,7 @@ function excluirEncomenda(id) {
 
     const senhaInformada = prompt("Digite a senha para excluir esta encomenda:");
 
-    if (senhaInformada === "@granja123") {
+    if (senhaInformada === admin_pass) {
 
         encomendas = encomendas.filter(e => e.id !== id);
 
@@ -1007,7 +1215,7 @@ document.getElementById('formReservas').addEventListener('submit', (e) => {
     // Salva localmente
     localStorage.setItem('lista_reservas', JSON.stringify(reservas));
     e.target.reset();
-    renderizarReservas();
+    
     
     // Sincroniza automaticamente com a nuvem (JSONBin)
     salvarNaNuvem();
@@ -1065,41 +1273,166 @@ document.getElementById('formReservas').addEventListener('submit', (e) => {
     }, 50);
 }
 
-        function renderizarReservas() {
-            const lista = document.getElementById('listaReservas');
-            if(!lista) return;
-            
-            if (reservas.length === 0) {
-                lista.innerHTML = `<div class="p-4 text-center text-gray-400 italic">Nenhuma reserva cadastrada.</div>`;
-                return;
+  // Garanta que a variável global exista no início do app.js:
+// let reservas_salao = JSON.parse(localStorage.getItem('lista_reservas_salao')) || [];
+
+function renderizarReservasSalao() {
+    const container = document.getElementById('listaReservasSalao');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (!reservas_salao || reservas_salao.length === 0) {
+        container.innerHTML = `<p class="text-sm text-gray-400 py-3">Nenhuma reserva cadastrada para o Salão de Festas.</p>`;
+        return;
+    }
+
+    // Ordena da mais próxima para a mais distante
+    reservas_salao.sort((a, b) => {
+        const dataA = new Date(`${a.data}T${a.horario || '00:00'}`);
+        const dataB = new Date(`${b.data}T${b.horario || '00:00'}`);
+        return dataA - dataB;
+    });
+
+    // Injeta os botões de filtro no topo da lista se já não existirem
+    let filtroContainer = document.getElementById('filtroReservasSalaoContainer');
+    if (!filtroContainer) {
+        filtroContainer = document.createElement('div');
+        filtroContainer.id = 'filtroReservasSalaoContainer';
+        filtroContainer.className = 'flex gap-2 mb-3';
+        filtroContainer.innerHTML = `
+            <button onclick="mudarFiltroReservaSalao('todos')" id="btnFiltroSalao-todos" class="px-3 py-1 text-xs font-semibold rounded-lg bg-green-600 text-white transition-colors">Todas</button>
+            <button onclick="mudarFiltroReservaSalao('hoje')" id="btnFiltroSalao-hoje" class="px-3 py-1 text-xs font-semibold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">Hoje</button>
+            <button onclick="mudarFiltroReservaSalao('mes')" id="btnFiltroSalao-mes" class="px-3 py-1 text-xs font-semibold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors">Este Mês</button>
+        `;
+        container.parentNode.insertBefore(filtroContainer, container);
+    }
+
+    // Recupera o filtro atual (padrão 'todos')
+    const filtroAtual = window.filtroReservaSalaoAtivo || 'todos';
+    
+    // Atualiza o estilo visual dos botões
+    ['todos', 'hoje', 'mes'].forEach(f => {
+        const btn = document.getElementById(`btnFiltroSalao-${f}`);
+        if (btn) {
+            if (f === filtroAtual) {
+                btn.className = "px-3 py-1 text-xs font-semibold rounded-lg bg-green-600 text-white transition-colors";
+            } else {
+                btn.className = "px-3 py-1 text-xs font-semibold rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors";
             }
-
-            let html = '';
-            reservas.forEach(r => {
-                let dataFormatada = r.data;
-                if(r.data) {
-                    const partes = r.data.split('-');
-                    if(partes.length === 3) dataFormatada = `${partes[2]}/${partes[1]}/${partes[0]}`;
-                }
-
-                html += `
-                    <div class="p-4 flex justify-between items-center group">
-                        <div>
-                            <span class="text-[10px] text-gray-400 font-bold uppercase">Lote / Casa: ${r.lote}</span>
-                            <p class="font-bold text-green-800 text-lg">${r.area}</p>
-                            <p class="text-sm text-gray-600">
-                                <i data-lucide="calendar" class="w-3.5 h-3.5 inline mr-1"></i>${dataFormatada || 'Sem data'} 
-                                <i data-lucide="clock" class="w-3.5 h-3.5 inline ml-2 mr-1"></i>${r.horario}
-                            </p>
-                        </div>
-                        <button onclick="excluirReserva(${r.id})" class="p-2 text-gray-400 hover:text-red-600 transition-colors opacity-60 group-hover:opacity-100" title="Excluir Reserva (Exige Senha)">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>`;
-            });
-            lista.innerHTML = html;
-            lucide.createIcons();
         }
+    });
+
+    const hojeStr = new Date().toISOString().split('T')[0];
+    const anoMesAtual = hojeStr.substring(0, 7); // "YYYY-MM"
+
+    // Aplica o filtro selecionado
+    const reservasProcessadas = reservas_salao.filter(reserva => {
+        if (filtroAtual === 'hoje') return reserva.data === hojeStr;
+        if (filtroAtual === 'mes') return reserva.data.startsWith(anoMesAtual);
+        return true;
+    });
+
+    if (reservasProcessadas.length === 0) {
+        container.innerHTML = `<p class="text-sm text-gray-400 py-3">Nenhuma reserva encontrada para este filtro.</p>`;
+        return;
+    }
+
+    // Separa as de hoje das demais para o separador visual
+    const reservasHoje = reservasProcessadas.filter(r => r.data === hojeStr);
+    const outrasReservas = reservasProcessadas.filter(r => r.data !== hojeStr);
+
+    let htmlFinal = '';
+
+    if (reservasHoje.length > 0 && filtroAtual === 'todos') {
+        htmlFinal += `<div class="text-xs font-bold text-green-700 uppercase tracking-wider py-2 bg-green-50 px-2 rounded-md mb-2">Reservas para Hoje</div>`;
+    }
+
+    const montarItemHtml = (reserva) => `
+        <div class="py-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-2 border-b border-gray-100 text-sm">
+            <div>
+                <h5 class="font-bold text-gray-800 text-base">${reserva.titulo}</h5>
+                <p class="text-xs text-gray-600 font-medium">Morador: ${reserva.morador} (Lote/Casa: ${reserva.lote})</p>
+                <p class="text-xs text-gray-500">Data: ${reserva.data} às ${reserva.horario}</p>
+                <p class="text-xs text-green-700 mt-1"><strong>Serviços:</strong> ${reserva.servicos || 'Nenhum informado'}</p>
+                <p class="text-xs text-gray-500 mt-1"><strong>Convidados:</strong> ${reserva.convidados ? reserva.convidados.replace(/\n/g, ', ') : 'Nenhum listado'}</p>
+            </div>
+            <button onclick="excluirReservaSalao(${reserva.id})" class="text-red-500 hover:text-red-700 text-xs font-semibold bg-red-50 px-3 py-1.5 rounded-lg transition-colors">Excluir</button>
+        </div>
+    `;
+
+    reservasHoje.forEach(reserva => {
+        htmlFinal += montarItemHtml(reserva);
+    });
+
+    if (reservasHoje.length > 0 && outrasReservas.length > 0 && filtroAtual === 'todos') {
+        htmlFinal += `<div class="text-xs font-bold text-gray-500 uppercase tracking-wider py-2 bg-gray-50 px-2 rounded-md mt-4 mb-2">Próximas Reservas</div>`;
+    }
+
+    outrasReservas.forEach(reserva => {
+        htmlFinal += montarItemHtml(reserva);
+    });
+
+    container.innerHTML = htmlFinal;
+}
+
+function mudarFiltroReservaSalao(tipoFiltro) {
+    window.filtroReservaSalaoAtivo = tipoFiltro;
+    renderizarReservasSalao();
+}
+
+function abrirModalNovaReservaSalao() {
+    document.getElementById('modalReservaSalao').classList.remove('hidden');
+}
+
+function fecharModalReservaSalao() {
+    document.getElementById('modalReservaSalao').classList.add('hidden');
+    document.getElementById('formReservaSalao').reset();
+}
+
+function salvarReservaSalao(event) {
+    event.preventDefault();
+
+    const novaReserva = {
+        id: Date.now(),
+        lote: document.getElementById('salaoLote').value,
+        morador: document.getElementById('salaoMorador').value,
+        titulo: document.getElementById('salaoTitulo').value,
+        data: document.getElementById('salaoData').value,
+        horario: document.getElementById('salaoHora').value,
+        servicos: document.getElementById('salaoServicos').value,
+        convidados: document.getElementById('salaoConvidados').value
+    };
+
+    reservas_salao.push(novaReserva);
+    localStorage.setItem('lista_reservas_salao', JSON.stringify(reservas_salao));
+    
+    // Se utilizar sincronização em nuvem:
+    if (typeof salvarNaNuvem === 'function') salvarNaNuvem();
+
+    fecharModalReservaSalao();
+    renderizarReservasSalao();
+}
+
+function excluirReservaSalao(id) {
+    const senhaDigitada = prompt("Digite a senha de administração para excluir esta reserva:");
+    
+    // Altere '1234' para a senha desejada do seu sistema
+    if (senhaDigitada === null) return; // Cancelado pelo usuário
+    
+    if (senhaDigitada !== admin_pass) {
+        alert("Senha incorreta! A exclusão foi cancelada.");
+        return;
+    }
+
+    if (confirm("Deseja realmente cancelar esta reserva do salão de festas?")) {
+        reservas_salao = reservas_salao.filter(r => r.id !== id);
+        localStorage.setItem('lista_reservas_salao', JSON.stringify(reservas_salao));
+        
+        if (typeof salvarNaNuvem === 'function') salvarNaNuvem();
+        
+        renderizarReservasSalao();
+    }
+}
     // Assim que o site abre no celular ou computador, ele busca os dados atualizados
 window.addEventListener('DOMContentLoaded', () => {
     carregarDaNuvem();
@@ -1108,9 +1441,7 @@ window.addEventListener('DOMContentLoaded', () => {
         renderizar();
         renderizarEncomendas();
         renderizarHistorico();
-        renderizarEspacosSelect();
-        renderizarEspacosGerencia();
-        renderizarReservas();
+        renderizarEspacos();
         renderizarNotas();
         lucide.createIcons();
     
