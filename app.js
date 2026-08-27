@@ -193,7 +193,7 @@ async function carregarDaNuvem() {
             event?.currentTarget?.classList?.add('bg-green-50', 'text-green-700', 'font-bold');
 
           // toggleMenu();
-            renderizar(); renderizarNotas(); renderizarEncomendas(); renderizarHistorico(); renderizarEspacosSelect(); renderizarEspacosGerencia(); 
+            renderizar(); renderizarNotas(); renderizarEncomendas(); renderizarHistorico(); 
             lucide.createIcons();
         }
        function mudarAba(aba) {
