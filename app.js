@@ -646,7 +646,7 @@ function renderizarReservasDoEspaco(nomeEspaco) {
         <div class="py-3 flex justify-between items-center text-sm border-b border-gray-100">
             <div>
                 <p class="font-semibold text-gray-800">Lote/Casa: ${reserva.lote}</p>
-                <p class="text-xs text-gray-500">Data: ${reserva.data} às ${reserva.horario}</p>
+                <p class="text-xs text-gray-500">Data: ${formatarDataBR(reserva.data)} às ${reserva.horario}</p>
             </div>
             <button onclick="excluirReserva(${reserva.id})" class="text-red-500 hover:text-red-700 text-xs font-medium">Excluir</button>
         </div>
@@ -1454,7 +1454,7 @@ function renderizarReservasSalao() {
             <div>
                 <h5 class="font-bold text-gray-800 text-base">${reserva.titulo}</h5>
                 <p class="text-xs text-gray-600 font-medium">Morador: ${reserva.morador} (Lote/Casa: ${reserva.lote})</p>
-                <p class="text-xs text-gray-500">Data: ${reserva.data} às ${reserva.horario}</p>
+                <p class="text-xs text-gray-500">Data: ${formatarDataBR(reserva.data)} às ${reserva.horario}</p>
                 <p class="text-xs text-green-700 mt-1"><strong>Serviços:</strong> ${reserva.servicos || 'Nenhum informado'}</p>
                 <p class="text-xs text-gray-500 mt-1"><strong>Convidados:</strong> ${reserva.convidados ? reserva.convidados.replace(/\n/g, ', ') : 'Nenhum listado'}</p>
             </div>
@@ -1534,6 +1534,17 @@ function excluirReservaSalao(id) {
         
         renderizarReservasSalao();
     }
+}
+function formatarDataBR(dataStr) {
+    if (!dataStr) return '';
+    // Se a data vier no formato AAAA-MM-DD (ex: 2026-07-15)
+    if (dataStr.includes('-')) {
+        const partes = dataStr.split('-');
+        if (partes.length === 3) {
+            return `${partes[2]}/${partes[1]}/${partes[0]}`;
+        }
+    }
+    return dataStr;
 }
     // Assim que o site abre no celular ou computador, ele busca os dados atualizados
 window.addEventListener('DOMContentLoaded', () => {
