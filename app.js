@@ -72,6 +72,76 @@ window.addEventListener('DOMContentLoaded', () => {
         alert("Erro ao tentar salvar os dados na nuvem.");
     }
 }
+async function registrarAcessoNaNuvem() {
+    try {
+        console.log("Registrando novo acesso na nuvem...");
+
+        // 1. Busca os dados mais recentes do JSONBin para não sobrescrever alterações de outros usuários
+        const respostaLeitura = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+            headers: {
+                'X-Master-Key': MASTER_KEY
+            }
+        });
+
+        if (!respostaLeitura.ok) throw new Error('Erro ao buscar dados para registrar acesso');
+
+        const resultadoLeitura = await respostaLe；ultr_json = await respostaLeitura.json();
+        let dados = resultadoLeitura.record;
+
+        // Se por acaso os dados antigos forem apenas um array (formato legado), convertemos para o objeto completo
+        if (Array.isArray(dados)) {
+            dados = {
+                moradores: dados,
+                notas: typeof notas !== 'undefined' ? notas : [],
+                reservas: typeof reservas !== 'undefined' ? reservas : [],
+                encomendas: typeof encomendas !== 'undefined' ? encomendas : [],
+                espacos: typeof espacos !== 'undefined' ? espacos : [],
+                acessos: 0,
+                historico_logins: []
+            };
+        }
+
+        // 2. Garante que as propriedades de acesso existem no objeto
+        if (typeof dados.acessos !== 'number') {
+            dados.acessos = 0;
+        }
+        if (!Array.isArray(dados.historico_logins)) {
+            dados.historico_logins = [];
+        }
+
+        // 3. Incrementa o contador e registra a data/hora exata do acesso
+        dados.acessos += 1;
+        
+        const dataHoraAtual = new Date().toLocaleString('pt-BR');
+        dados.historico_logins.unshift({
+            data: dataHoraAtual,
+            dispositivo: navigator.userAgent // Opcional: salva informações básicas do navegador
+        });
+
+        // Mantém apenas os últimos 50 logins no histórico para o arquivo não ficar gigante
+        if (dados.historico_logins.length > 50) {
+            dados.historico_logins.pop();
+        }
+
+        // 4. Envia o objeto atualizado de volta para o JSONBin
+        const respostaEscrita = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Master-Key': MASTER_KEY
+            },
+            body: JSON.stringify(dados)
+        });
+
+        if (!respostaEscrita.ok) throw new Error('Erro ao salvar o registro de acesso na nuvem');
+
+        console.log(`Acesso registrado com sucesso! Total de acessos: ${dados.acessos}`);
+
+    } catch (error) {
+        console.error("Erro ao registrar acesso:", error);
+        // Opcional: não bloquear o login do usuário caso ocorra falha de internet
+    }
+}
 
         // 1. CARREGAR OS DADOS (Use quando a página abrir)
         
