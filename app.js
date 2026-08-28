@@ -19,6 +19,8 @@ function realizarLoginSimples() {
         const telaLogin = document.getElementById('telaLogin');
         if (telaLogin) {
             telaLogin.classList.add('hidden');
+             // Chama a função para registrar o acesso na nuvem em segundo plano
+        registrarAcessoNaNuvem(); 
         }
     } else {
         alert("Senha incorreta! Tente novamente.");
