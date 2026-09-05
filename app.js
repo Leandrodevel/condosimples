@@ -5,7 +5,7 @@ const admin_pass = "260926";
 // Verifica se já está logado ao carregar a página
 window.addEventListener('DOMContentLoaded', () => {
     const logado = localStorage.getItem('sistema_logado');
-    const adm = localstorage.getItem('adm_logado)
+    const adm = localstorage.getItem('adm_logado')
     if (adm === 'true') {
         const telaLogin = document.getElementById('telaLogin');
         if (telaLogin) telaLogin.classList.add('hidden');
