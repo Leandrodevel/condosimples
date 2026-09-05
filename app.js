@@ -1,5 +1,5 @@
 // Senha padrão de acesso ao sistema
-const admin_pass = "207730";
+const admin_pass = "260926";
 
 
 // Verifica se já está logado ao carregar a página
