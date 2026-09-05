@@ -5,7 +5,8 @@ const admin_pass = "260926";
 // Verifica se já está logado ao carregar a página
 window.addEventListener('DOMContentLoaded', () => {
     const logado = localStorage.getItem('sistema_logado');
-    if (logado === 'true') {
+    const adm = localstorage.getItem('adm_logado)
+    if (adm === 'true') {
         const telaLogin = document.getElementById('telaLogin');
         if (telaLogin) telaLogin.classList.add('hidden');
     }
@@ -16,6 +17,8 @@ function realizarLoginSimples() {
 
     if (senhaDigitada === admin_pass) {
         localStorage.setItem('sistema_logado', 'true');
+        localStorage.setItem('adm_logado', 'true');
+        
         const telaLogin = document.getElementById('telaLogin');
         if (telaLogin) {
             telaLogin.classList.add('hidden');
